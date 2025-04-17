@@ -4,3 +4,4 @@
 
 **To Check out**:
 * Parameters of `quantize_static`
+* Set `per_channel`in `quantize_dynamic`
