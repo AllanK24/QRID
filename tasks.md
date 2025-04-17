@@ -1,3 +1,6 @@
-* Check ONNX pre-processing arguments in Python API:
-    > Pre-processing API is in Python module onnxruntime.quantization.shape_inference, function quant_pre_process(). 
-    https://github.com/microsoft/onnxruntime/blob/main/onnxruntime/python/tools/quantization/shape_inference.py
+**Come back later if time allows**:
+* Apply quantization debugging API from ONNX to gain more insights into how we benefit from ONNX, see potential bottlenecks.
+
+
+**To Check out**:
+* Parameters of `quantize_static`
