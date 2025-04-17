@@ -2,3 +2,4 @@
 yolov8n_dq.onnx
 yolov8n.onnx
 yolov8n.pt
+functions/__pycache__
