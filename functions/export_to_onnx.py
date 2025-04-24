@@ -1,7 +1,7 @@
 from ultralytics import YOLO
-from constants import default_onnx_export_kwargs
 from pathlib import Path
-def export_to_onnx(model_path:str | Path, export_args:dict, task="detect"):
+from functions.constants import default_onnx_export_kwargs
+def export_to_onnx(model_path:str | Path, export_args:dict=default_onnx_export_kwargs, task="detect"):
     """This function exports a YOLO model to ONNX format. It takes the model path and export arguments as input, and uses the YOLO library to perform the export. The function also handles exceptions that may occur during the loading and exporting process.
 
     Args:

@@ -1,5 +1,5 @@
 from pathlib import Path
-from constants import default_onnx_preprocess_kwargs
+from functions.constants import default_onnx_preprocess_kwargs
 from onnxruntime.quantization.preprocess import quant_pre_process
 
 def preprocess_model(input_model_path: str | Path, output_model_path: str | Path, preprocess_args:dict=default_onnx_preprocess_kwargs) -> None:
