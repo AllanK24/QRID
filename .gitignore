@@ -1,3 +1,4 @@
 .venv
 models/
 functions/__pycache__
+qrid_thesis_toolkit.egg-info/

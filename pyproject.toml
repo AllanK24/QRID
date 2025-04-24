@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qrid_thesis_toolkit"
+version = "0.1.0"
+description = "Toolkit for my thesis experiments"
+dependencies = []          # add run-time deps here
+
+[tool.setuptools.packages.find]
+where    = ["."]
+include  = ["functions*"]         # grab functions and its sub-packages
+exclude  = ["notebooks*", "models*", "thesis*"]
+namespaces = false

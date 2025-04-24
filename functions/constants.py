@@ -7,7 +7,7 @@ default_onnx_export_kwargs = {
     "simplify": True,
     "opset": None,
     "nms": False,
-    "batch": 8,
+    "batch": 1,
     "device": "cpu",
 }
 
@@ -33,4 +33,27 @@ default_onnx_dynmic_quant_kwargs = {
     'nodes_to_exclude': None, # Explicit list of node names whose weights should not be quantized. (kept in FP32)
     'use_external_data_format': False, # If True, the model will be saved in external data format. This is useful for large models (>2GB) to avoid loading the entire model into memory at once.
     'extra_options': None, # Additional options for the quantization process. This is a dictionary that can contain various settings depending on the specific requirements of the quantization process.
+}
+
+# Benchmarking constants #
+default_benchmark_kwargs = {
+    "imgsz": 640,
+    "device": "cpu",
+    "iou": 0.6,
+    "conf": 0.001,
+    "max_det": 300,
+    "split": "val",
+    "batch": 1,
+    "half": False,
+    "rect": True,
+    "dnn": False,
+    "workers": 8,
+    "augment": False,
+    "agnostic_nms": False,
+    "classes": None,
+    "single_cls": False,
+    "data": "coco.yaml",
+    "plots": False,
+    "save_json": False,
+    "verbose": False,
 }
