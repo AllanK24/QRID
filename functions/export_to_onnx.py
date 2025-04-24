@@ -1,12 +1,12 @@
 from ultralytics import YOLO
 from pathlib import Path
 from functions.constants import default_onnx_export_kwargs
-def export_to_onnx(model_path:str | Path, export_args:dict=default_onnx_export_kwargs, task="detect"):
+def export_to_onnx(model_path:str | Path, export_kwargs:dict=default_onnx_export_kwargs, task="detect"):
     """This function exports a YOLO model to ONNX format. It takes the model path and export arguments as input, and uses the YOLO library to perform the export. The function also handles exceptions that may occur during the loading and exporting process.
 
     Args:
         model_path (str | Path): The path to the YOLO model file. This should be a valid YOLO model file.
-        export_args (dict): A dictionary of arguments to be passed to the YOLO export function. This allows for customization of the ONNX export process.
+        export_kwargs (dict): A dictionary of arguments to be passed to the YOLO export function. This allows for customization of the ONNX export process.
         task (str, optional): The task for which the model is being exported. This can be "detect", "segment", or "pose". The default value is "detect". This argument is passed to the YOLO constructor to specify the type of model being used. It determines how the model will be loaded and exported.
     Returns:
         None: This function does not return any value. It performs the export process and prints messages indicating the success or failure of the operation.
@@ -23,7 +23,7 @@ def export_to_onnx(model_path:str | Path, export_args:dict=default_onnx_export_k
         return
     try:
         # Merge default export arguments with user-provided arguments
-        kwargs = {**default_onnx_export_kwargs, **export_args}
+        kwargs = {**default_onnx_export_kwargs, **export_kwargs}
         # Export the model to ONNX format
         output_file_path = model.export(format="onnx", **kwargs)
         print(f"Model {model_path} exported to ONNX format successfully at {output_file_path}.")

@@ -57,3 +57,5 @@ default_benchmark_kwargs = {
     "save_json": False,
     "verbose": False,
 }
+
+# ONNX Dynamic Quantization kwargs #

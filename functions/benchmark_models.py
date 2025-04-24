@@ -258,7 +258,7 @@ def benchmark_yolo_dynamic_quant(
     quantized_onnx_path = onnx_model_dir / f"{model_stem}_dynamic_{precision}.onnx" # Save quantized model here
     print(f"Performing dynamic quantization on {processed_onnx_path} to {quantized_onnx_path} in {precision.upper()}...")
     dynamic_quantization(
-        model=processed_onnx_path,
+        model_input=processed_onnx_path,
         model_output=quantized_onnx_path,
         kwargs=onnx_dynamic_quant_kwargs,
     )
@@ -312,7 +312,7 @@ def benchmark_yolo_dynamic_quant(
         return None # Indicate failure
 
 
-def benchmark_yolo_static(
+def benchmark_yolo_static_quant(
     
 ):
     pass
