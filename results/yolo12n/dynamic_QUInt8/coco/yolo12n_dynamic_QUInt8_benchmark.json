@@ -1,0 +1,10 @@
+{
+    "model_name": "yolo12n",
+    "model_type": "DYNAMIC_QUINT8_ONNX_Processed",
+    "dataset": "coco.yaml",
+    "hardware": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "mAP50-95": 0.3960272059080377,
+    "mAP50": 0.5587019700673677,
+    "latency_ms": 80.9230926428063,
+    "fps": 12.357412048177519
+}
