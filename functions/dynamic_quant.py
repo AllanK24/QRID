@@ -1,10 +1,10 @@
 from pathlib import Path
-from functions.constants import default_onnx_dynmic_quant_kwargs
+from functions.constants import default_onnx_dynamic_quant_kwargs
 from onnxruntime.quantization import quantize_dynamic
 
 def dynamic_quantization(model:str|Path,
                          model_output:str|Path,
-                         kwargs:dict=default_onnx_dynmic_quant_kwargs) -> None:
+                         kwargs:dict=default_onnx_dynamic_quant_kwargs) -> None:
     """Perform dynamic quantization on the given model. This function is used to reduce the size of the model and improve inference speed by quantizing the weights of the model.
 
     Args:
@@ -20,7 +20,7 @@ def dynamic_quantization(model:str|Path,
     """
     try:
         # Merge default quantization arguments with user-provided arguments
-        kwargs = {**default_onnx_dynmic_quant_kwargs, **kwargs}
+        kwargs = {**default_onnx_dynamic_quant_kwargs, **kwargs}
         print(f"Performing dynamic quantization on model {model}...")
         quantize_dynamic(model, model_output, **kwargs)
         print(f"Model {model} quantized successfully.")

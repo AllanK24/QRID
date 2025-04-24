@@ -25,17 +25,10 @@ def export_to_onnx(model_path:str | Path, export_args:dict=default_onnx_export_k
         # Merge default export arguments with user-provided arguments
         kwargs = {**default_onnx_export_kwargs, **export_args}
         # Export the model to ONNX format
-        model.export(format="onnx", **kwargs)
-        print(f"Model {model_path} exported to ONNX format successfully.")
+        output_file_path = model.export(format="onnx", **kwargs)
+        print(f"Model {model_path} exported to ONNX format successfully at {output_file_path}.")
+        return Path(output_file_path)
+        
     except Exception as e:
         print(f"Error exporting model {model_path} to ONNX: {e}. Please check the export arguments and try again.")
         return
-
-# Example usage
-if __name__=="__main__":
-    export_to_onnx(
-        model_path="yolov8n.pt",
-        export_args={
-            "device": "cuda",
-        },
-    )

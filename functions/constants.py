@@ -24,7 +24,7 @@ default_onnx_preprocess_kwargs = {
 }
 
 # ONNX Dynamic Quantization kwargs #
-default_onnx_dynmic_quant_kwargs = {
+default_onnx_dynamic_quant_kwargs = {
     'op_types_to_quantize': None, # Specifies which operator types should have their weights quantized offline. Dynamic quantization primarily targets operators like Conv, MatMul, LSTM, GRU where weights are static.
     'per_channel': True, # Quantizes weights per-channel (True) or per-tensor (False)
     'reduce_range': False, # Uses 7-bit range for weights instead of 8-bit.
