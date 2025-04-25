@@ -25,14 +25,14 @@ default_onnx_preprocess_kwargs = {
 
 # ONNX Dynamic Quantization kwargs #
 default_onnx_dynamic_quant_kwargs = {
-    'op_types_to_quantize': None, # Specifies which operator types should have their weights quantized offline. Dynamic quantization primarily targets operators like Conv, MatMul, LSTM, GRU where weights are static.
+    'op_types_to_quantize': ['MatMul', 'Gemm'], # Specifies which operator types should have their weights quantized offline. Dynamic quantization primarily targets operators like Conv, MatMul, LSTM, GRU where weights are static.
     'per_channel': True, # Quantizes weights per-channel (True) or per-tensor (False)
     'reduce_range': False, # Uses 7-bit range for weights instead of 8-bit.
     'weight_type': QuantType.QUInt8, # Target data type for the weights that are quantized offline. (QUInt8 is the only supported)
     'nodes_to_quantize': None, # Explicit list of node names whose weights should be quantized.
     'nodes_to_exclude': None, # Explicit list of node names whose weights should not be quantized. (kept in FP32)
     'use_external_data_format': False, # If True, the model will be saved in external data format. This is useful for large models (>2GB) to avoid loading the entire model into memory at once.
-    'extra_options': None, # Additional options for the quantization process. This is a dictionary that can contain various settings depending on the specific requirements of the quantization process.
+    'extra_options': {"MatMulConstBOnly": True}
 }
 
 # Benchmarking constants #
