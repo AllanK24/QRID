@@ -305,9 +305,9 @@ def benchmark_yolo_static_quant(
     model_pt_path_str: str, # Changed name for clarity: Path to the original .pt file
     models_base_dir: str, # Base directory to store pt/onnx models (e.g., 'models/')
     results_base_dir: str, # Base directory to store results (e.g., 'results/')
+    onnx_calibrator_kwargs: dict, # Arguments for the YOLOCalibrationDataReader
     onnx_export_kwargs: dict={}, # Arguments for the ONNX export function
     onnx_preprocess_kwargs: dict={}, # Arguments for the ONNX pre-processing function
-    onnx_calibrator_kwargs: dict={}, # Arguments for the YOLOCalibrationDataReader
     onnx_static_quant_kwargs: dict={}, # Arguments for static quantization
     onnx_benchmark_kwargs: dict={}, # Must contain the 'data' key for the dataset yaml
 ):
@@ -397,9 +397,21 @@ def benchmark_yolo_static_quant(
         return None
     
     # --- Apply Static Quantization ---
+    try:
+        print(f"Initializing YOLOCalibrationDataReader...")
+        calibration_datareader = YOLOCalibrationDataReader(**onnx_calibrator_kwargs)
+    except Exception as e:
+        print(f"Error initializing YOLOCalibrationDataReader: {e}")
+        return None
+    
     quantized_onnx_path = onnx_model_dir / f"{model_stem}_static_{precision}.onnx" # Save quantized model here
     print(f"Performing static quantization on {processed_onnx_path} to {quantized_onnx_path} in {precision}...")
-    
+    static_quantization(
+        model_input=processed_onnx_path,
+        model_output=quantized_onnx_path,
+        calibration_data=calibration_datareader,
+        static_quant_kwargs=onnx_static_quant_kwargs,
+    )
 
     # --- Perform Benchmark on the Preprocessed | Quantized ONNX model ---
     dataset_yaml_path_str = onnx_benchmark_kwargs.get("data", "coco.yaml")
