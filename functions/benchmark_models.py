@@ -240,7 +240,7 @@ def benchmark_yolo_dynamic_quant(
         return None
     
     # --- Apply Dynamic Quantization ---
-    quantized_onnx_path = onnx_model_dir / f"{model_stem}_dynamic_{precision}.onnx" # Save quantized model here
+    quantized_onnx_path = onnx_model_dir / f"{model_stem}_{precision}.onnx" # Save quantized model here
     dynamic_quantization(
         model_input=processed_onnx_path,
         model_output=quantized_onnx_path,
