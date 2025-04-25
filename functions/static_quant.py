@@ -135,7 +135,7 @@ class YOLOCalibrationDataReader(CalibrationDataReader):
         return img
 
 
-def static_quant(model_input:str|Path, 
+def static_quantization(model_input:str|Path, 
                  model_output:str|Path,
                  calibration_data: CalibrationDataReader,
                  static_quant_kwargs: dict = default_onnx_static_quant_kwargs):
