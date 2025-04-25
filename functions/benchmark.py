@@ -20,9 +20,9 @@ def benchmark(model:YOLO, kwargs:dict=default_benchmark_kwargs):
     kwargs = {**default_benchmark_kwargs, **kwargs}
     
     # Perform benchmark
-    print(f"Performing benchmark on model {model}...")
+    print(f"Performing benchmarking...")
     benchmark_results = model.val(**kwargs)
-    print(f"Benchmark completed for model {model}.")
+    print(f"Benchmark completed.")
     print(f"Benchmark results: {benchmark_results}")
     
     return benchmark_results

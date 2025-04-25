@@ -41,8 +41,8 @@ def benchmark_yolo_fp(
     
     original_pt_path = Path(model_pt_path_str)
     if not original_pt_path.exists():
-        print(f"Error: Input PyTorch model not found at {original_pt_path}, downloading model...")
-        # Attempt to download the model if it doesn't exist
+        print(f"Input PyTorch model not found at {original_pt_path}, downloading model...")
+        # Attempt downloading the model automatically if it doesn't exist
         model = YOLO(model_pt_path_str, task="detect")
         original_pt_path = Path(model.ckpt_path)
         print(f"Downloaded model to {original_pt_path}")
@@ -63,9 +63,9 @@ def benchmark_yolo_fp(
     organized_pt_path = pt_model_dir / original_pt_path.name
     try:
         shutil.move(original_pt_path, organized_pt_path)
-        print(f"Copied {original_pt_path} to {organized_pt_path}")
+        print(f"Moved {original_pt_path} to {organized_pt_path}")
     except Exception as e:
-        print(f"Error copying model {original_pt_path} to {organized_pt_path}: {e}")
+        print(f"Error moving model {original_pt_path} to {organized_pt_path}: {e}")
         return None
 
     # --- Export the Copied PT model to ONNX ---
@@ -73,7 +73,7 @@ def benchmark_yolo_fp(
     print(f"Exporting {organized_pt_path} to {exported_onnx_path}...")
     exported_onnx_path = export_to_onnx(
         model_path=organized_pt_path,
-        export_args=onnx_export_kwargs,
+        export_kwargs=onnx_export_kwargs,
     )
     
     # Move the exported ONNX model to the ONNX directory
@@ -86,13 +86,12 @@ def benchmark_yolo_fp(
 
     # --- Preprocess the Exported ONNX model ---
     processed_onnx_path = onnx_model_dir / f"{model_stem}_processed.onnx" # Save processed model here
-    print(f"Preprocessing {onnx_model_dir} to {processed_onnx_path}...")
     try:
         # Assuming preprocess_model takes input and output paths
         preprocess_model(
             input_model_path=onnx_model_dir/f"{model_stem}.onnx",
             output_model_path=processed_onnx_path,
-            preprocess_args=onnx_preprocess_kwargs,
+            preprocess_kwargs=onnx_preprocess_kwargs,
         )
         # Check if the output file was actually created
         if not processed_onnx_path.exists():
@@ -106,7 +105,6 @@ def benchmark_yolo_fp(
     dataset_yaml_path_str = onnx_benchmark_kwargs.get("data", "coco.yaml")
     dataset_stem = Path(dataset_yaml_path_str).stem # e.g., "coco" or "coco_noisy_low"
 
-    print(f"Benchmarking {processed_onnx_path} on dataset {dataset_stem}...")
     try:
         # Load the processed ONNX model for benchmarking
         model_onnx = YOLO(str(processed_onnx_path)) # Must use string path for YOLO constructor
@@ -116,7 +114,6 @@ def benchmark_yolo_fp(
         )
         if benchmark_results_obj is None:
             raise RuntimeError("Benchmark function returned None or failed internally.")
-        print("Benchmark successful.")
     except Exception as e:
         print(f"Error benchmarking model {processed_onnx_path}: {e}")
         return None
@@ -182,8 +179,8 @@ def benchmark_yolo_dynamic_quant(
     
     original_pt_path = Path(model_pt_path_str)
     if not original_pt_path.exists():
-        print(f"Error: Input PyTorch model not found at {original_pt_path}, downloading model...")
-        # Attempt to download the model if it doesn't exist
+        print(f"Input PyTorch model not found at {original_pt_path}, downloading model...")
+        # Attempt downloading the model if it doesn't exist
         model = YOLO(model_pt_path_str, task="detect")
         original_pt_path = Path(model.ckpt_path)
         print(f"Downloaded model to {original_pt_path}")
@@ -204,9 +201,9 @@ def benchmark_yolo_dynamic_quant(
     organized_pt_path = pt_model_dir / original_pt_path.name
     try:
         shutil.move(original_pt_path, organized_pt_path)
-        print(f"Copied {original_pt_path} to {organized_pt_path}")
+        print(f"Moved {original_pt_path} to {organized_pt_path}")
     except Exception as e:
-        print(f"Error copying model {original_pt_path} to {organized_pt_path}: {e}")
+        print(f"Error moving model {original_pt_path} to {organized_pt_path}: {e}")
         return None
 
     # --- Export the Copied PT model to ONNX ---
@@ -214,7 +211,7 @@ def benchmark_yolo_dynamic_quant(
     print(f"Exporting {organized_pt_path} to {exported_onnx_path}...")   
     exported_onnx_path = export_to_onnx(
         model_path=organized_pt_path,
-        export_args=onnx_export_kwargs,
+        export_kwargs=onnx_export_kwargs,
     )
     
     # Move the exported ONNX model to the ONNX directory
@@ -227,13 +224,12 @@ def benchmark_yolo_dynamic_quant(
 
     # --- Preprocess the Exported ONNX model ---
     processed_onnx_path = onnx_model_dir / f"{model_stem}_processed.onnx" # Save processed model here
-    print(f"Preprocessing {onnx_model_dir} to {processed_onnx_path}...")
     try:
         # Assuming preprocess_model takes input and output paths
         preprocess_model(
             input_model_path=onnx_model_dir/f"{model_stem}.onnx",
             output_model_path=processed_onnx_path,
-            preprocess_args=onnx_preprocess_kwargs,
+            preprocess_kwargs=onnx_preprocess_kwargs,
         )
         # Check if the output file was actually created
         if not processed_onnx_path.exists():
@@ -245,18 +241,16 @@ def benchmark_yolo_dynamic_quant(
     
     # --- Apply Dynamic Quantization ---
     quantized_onnx_path = onnx_model_dir / f"{model_stem}_dynamic_{precision}.onnx" # Save quantized model here
-    print(f"Performing dynamic quantization on {processed_onnx_path} to {quantized_onnx_path} in {precision}...")
     dynamic_quantization(
         model_input=processed_onnx_path,
         model_output=quantized_onnx_path,
-        kwargs=onnx_dynamic_quant_kwargs,
+        quant_kwargs=onnx_dynamic_quant_kwargs,
     )
 
     # --- Perform Benchmark on the Preprocessed ONNX model ---
     dataset_yaml_path_str = onnx_benchmark_kwargs.get("data", "coco.yaml")
     dataset_stem = Path(dataset_yaml_path_str).stem # e.g., "coco" or "coco_noisy_low"
 
-    print(f"Benchmarking {quantized_onnx_path} on dataset {dataset_stem}...")
     try:
         # Load the processed ONNX model for benchmarking
         model_onnx = YOLO(str(quantized_onnx_path)) # Must use string path for YOLO constructor
@@ -266,7 +260,6 @@ def benchmark_yolo_dynamic_quant(
         )
         if benchmark_results_obj is None:
             raise RuntimeError("Benchmark function returned None or failed internally.")
-        print("Benchmark successful.")
     except Exception as e:
         print(f"Error benchmarking model {quantized_onnx_path}: {e}")
         return None
@@ -319,9 +312,9 @@ def benchmark_yolo_static_quant(
         model_pt_path_str (str): Path to the original YOLOv8 PyTorch (.pt) model file.
         models_base_dir (str): Base directory to store organized model files (pt and onnx).
         results_base_dir (str): Base directory to store organized benchmark results.
+        onnx_calibrator_kwargs (dict): Arguments for the YOLOCalibrationDataReader.
         onnx_export_kwargs (dict): Arguments for the ONNX export function.
         onnx_preprocess_kwargs (dict): Arguments for the ONNX pre-processing function.
-        onnx_calibrator_kwargs (dict): Arguments for the YOLOCalibrationDataReader.
         onnx_static_quant_kwargs (dict): Arguments for static quantization.
         onnx_benchmark_kwargs (dict): Arguments for the benchmark function (MUST include 'data' key).
     
@@ -367,7 +360,7 @@ def benchmark_yolo_static_quant(
     print(f"Exporting {organized_pt_path} to {exported_onnx_path}...")
     exported_onnx_path = export_to_onnx(
         model_path=organized_pt_path,
-        export_args=onnx_export_kwargs,
+        export_kwargs=onnx_export_kwargs,
     )
     
     # Move the exported ONNX model to the ONNX directory
@@ -380,13 +373,12 @@ def benchmark_yolo_static_quant(
 
     # --- Preprocess the Exported ONNX model ---
     processed_onnx_path = onnx_model_dir / f"{model_stem}_processed.onnx" # Save processed model here
-    print(f"Preprocessing {onnx_model_dir} to {processed_onnx_path}...")
     try:
         # Assuming preprocess_model takes input and output paths
         preprocess_model(
             input_model_path=onnx_model_dir/f"{model_stem}.onnx",
             output_model_path=processed_onnx_path,
-            preprocess_args=onnx_preprocess_kwargs,
+            preprocess_kwargs=onnx_preprocess_kwargs,
         )
         # Check if the output file was actually created
         if not processed_onnx_path.exists():
@@ -405,19 +397,17 @@ def benchmark_yolo_static_quant(
         return None
     
     quantized_onnx_path = onnx_model_dir / f"{model_stem}_static_{precision}.onnx" # Save quantized model here
-    print(f"Performing static quantization on {processed_onnx_path} to {quantized_onnx_path} in {precision}...")
     static_quantization(
         model_input=processed_onnx_path,
         model_output=quantized_onnx_path,
         calibration_data=calibration_datareader,
-        static_quant_kwargs=onnx_static_quant_kwargs,
+        quant_kwargs=onnx_static_quant_kwargs,
     )
 
     # --- Perform Benchmark on the Preprocessed | Quantized ONNX model ---
     dataset_yaml_path_str = onnx_benchmark_kwargs.get("data", "coco.yaml")
     dataset_stem = Path(dataset_yaml_path_str).stem # e.g., "coco" or "coco_noisy_low"
 
-    print(f"Benchmarking {quantized_onnx_path} on dataset {dataset_stem}...")
     try:
         # Load the processed ONNX model for benchmarking
         model_onnx = YOLO(str(quantized_onnx_path)) # Must use string path for YOLO constructor
@@ -427,7 +417,6 @@ def benchmark_yolo_static_quant(
         )
         if benchmark_results_obj is None:
             raise RuntimeError("Benchmark function returned None or failed internally.")
-        print("Benchmark successful.")
     except Exception as e:
         print(f"Error benchmarking model {quantized_onnx_path}: {e}")
         return None

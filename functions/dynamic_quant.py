@@ -4,7 +4,7 @@ from onnxruntime.quantization import quantize_dynamic
 
 def dynamic_quantization(model_input:str|Path,
                          model_output:str|Path,
-                         kwargs:dict=default_onnx_dynamic_quant_kwargs) -> None:
+                         quant_kwargs:dict=default_onnx_dynamic_quant_kwargs) -> None:
     """Perform dynamic quantization on the given model. This function is used to reduce the size of the model and improve inference speed by quantizing the weights of the model.
 
     Args:
@@ -20,9 +20,9 @@ def dynamic_quantization(model_input:str|Path,
     """
     try:
         # Merge default quantization arguments with user-provided arguments
-        kwargs = {**default_onnx_dynamic_quant_kwargs, **kwargs}
+        quant_kwargs = {**default_onnx_dynamic_quant_kwargs, **quant_kwargs}
         print(f"Performing dynamic quantization on model {model_input}...")
-        quantize_dynamic(model_input, model_output, **kwargs)
+        quantize_dynamic(model_input, model_output, **quant_kwargs)
         print(f"Model {model_input} quantized successfully.")
     except Exception as e:
         print(f"Error during dynamic quantization of model {model_input}: {e}. Please check the model path and quantization arguments.")
