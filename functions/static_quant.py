@@ -147,7 +147,7 @@ def static_quantization(model_input:str|Path,
         quantize_static(
             model_input=model_input,
             model_output=model_output,
-            calibration_data_reader=calibration_data
+            calibration_data_reader=calibration_data,
             **quant_kwargs,
         )
         print(f"Model {model_input} quantized successfully.")

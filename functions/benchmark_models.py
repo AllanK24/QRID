@@ -328,7 +328,7 @@ def benchmark_yolo_static_quant(
     
     original_pt_path = Path(model_pt_path_str)
     if not original_pt_path.exists():
-        print(f"Error: Input PyTorch model not found at {original_pt_path}, downloading model...")
+        print(f"Input PyTorch model not found at {original_pt_path}, downloading model...")
         # Attempt to download the model if it doesn't exist
         model = YOLO(model_pt_path_str, task="detect")
         original_pt_path = Path(model.ckpt_path)
@@ -350,9 +350,9 @@ def benchmark_yolo_static_quant(
     organized_pt_path = pt_model_dir / original_pt_path.name
     try:
         shutil.move(original_pt_path, organized_pt_path)
-        print(f"Copied {original_pt_path} to {organized_pt_path}")
+        print(f"Moved {original_pt_path} to {organized_pt_path}")
     except Exception as e:
-        print(f"Error copying model {original_pt_path} to {organized_pt_path}: {e}")
+        print(f"Error moving model {original_pt_path} to {organized_pt_path}: {e}")
         return None
 
     # --- Export the Copied PT model to ONNX ---
@@ -389,6 +389,7 @@ def benchmark_yolo_static_quant(
         return None
     
     # --- Apply Static Quantization ---
+    onnx_calibrator_kwargs['model_path'] = str(processed_onnx_path) # Ensure the model path is set for calibration
     try:
         print(f"Initializing YOLOCalibrationDataReader...")
         calibration_datareader = YOLOCalibrationDataReader(**onnx_calibrator_kwargs)

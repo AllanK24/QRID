@@ -80,7 +80,7 @@ default_onnx_static_quant_kwargs = {
     "nodes_to_quantize": None, # Not needed for quantizing the whole model by type.
     "nodes_to_exclude": None, # Explicit list of node names whose weights should not be quantized. (kept in FP32)
     "use_external_data_format": False, # If True, the model will be saved in external data format. This is useful for large models (>2GB) to avoid loading the entire model into memory at once.
-    "calibration_method": CalibrationMethod.MinMax, # Simpler and faster calibration method. Start with this. If you see accuracy issues potentially caused by outliers, you can experiment with CalibrationMethod.Entropy later.
+    "calibrate_method": CalibrationMethod.MinMax, # Simpler and faster calibration method. Start with this. If you see accuracy issues potentially caused by outliers, you can experiment with CalibrationMethod.Entropy later.
     "calibration_providers": ['CPUExecutionProvider'], # List of execution providers to use for calibration. This is important for compatibility with different hardware accelerators.
     "extra_options": common_extra_options_static_quant.copy()
 }
