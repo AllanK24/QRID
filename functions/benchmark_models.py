@@ -8,7 +8,7 @@ from functions.preprocess import preprocess_model
 from functions.export_to_onnx import export_to_onnx
 from functions.dynamic_quant import dynamic_quantization
 from functions.get_device_name import get_cpu_name, get_gpu_name
-from functions.static_quant import static_quantization, YOLOCalibrationDataReader
+from functions.static_quant import static_quantization, YOLOCalibrationDataReader, ImageCalibrationDataReader
 
 def benchmark_yolo_fp(
     model_pt_path_str: str, # Changed name for clarity: Path to the original .pt file
@@ -96,7 +96,7 @@ def benchmark_yolo_fp(
         # Check if the output file was actually created
         if not processed_onnx_path.exists():
              raise FileNotFoundError("Preprocessed ONNX file was not created.")
-        print("ONNX preprocessing successful. Preprocessed ONNX file was created.")
+        print("Preprocessed ONNX file was created.")
     except Exception as e:
         print(f"Error preprocessing ONNX model {exported_onnx_path}: {e}")
         return None
@@ -234,7 +234,7 @@ def benchmark_yolo_dynamic_quant(
         # Check if the output file was actually created
         if not processed_onnx_path.exists():
              raise FileNotFoundError("Preprocessed ONNX file was not created.")
-        print("ONNX preprocessing successful. Preprocessed ONNX file was created.")
+        print("Preprocessed ONNX file was created.")
     except Exception as e:
         print(f"Error preprocessing ONNX model {exported_onnx_path}: {e}")
         return None
@@ -383,7 +383,7 @@ def benchmark_yolo_static_quant(
         # Check if the output file was actually created
         if not processed_onnx_path.exists():
              raise FileNotFoundError("Preprocessed ONNX file was not created.")
-        print("ONNX preprocessing successful.")
+        print("Preprocessed ONNX file was created.")
     except Exception as e:
         print(f"Error preprocessing ONNX model {exported_onnx_path}: {e}")
         return None
@@ -393,11 +393,12 @@ def benchmark_yolo_static_quant(
     try:
         print(f"Initializing YOLOCalibrationDataReader...")
         calibration_datareader = YOLOCalibrationDataReader(**onnx_calibrator_kwargs)
+        # calibration_datareader = ImageCalibrationDataReader(image_paths=onnx_calibrator_kwargs['image_folder_or_list'])
     except Exception as e:
         print(f"Error initializing YOLOCalibrationDataReader: {e}")
         return None
     
-    quantized_onnx_path = onnx_model_dir / f"{model_stem}_static_{precision}.onnx" # Save quantized model here
+    quantized_onnx_path = onnx_model_dir / f"{model_stem}_{precision}.onnx" # Save quantized model here
     static_quantization(
         model_input=processed_onnx_path,
         model_output=quantized_onnx_path,

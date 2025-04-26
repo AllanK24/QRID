@@ -1,7 +1,11 @@
-**Come back later if time allows**:
-* Apply quantization debugging API from ONNX to gain more insights into how we benefit from ONNX, see potential bottlenecks.
-
+weight type, activation type supports:
+* QInt8
+* QInt8, QUInt8
+* QUInt8, QUInt8
+Miserable difference, but the best one is QInt8 for both weight and activation
 
 **To Check out**:
-* Parameters of `quantize_static`
-* Set `per_channel`in `quantize_dynamic`
+calibrate_method
+what calibrator data reader is better: YOLOCalibrationDataReader vs ImageCalibrationDataReader
+
+test the automatic node exclude function on newer yolo models: yolo11 and yolo12
