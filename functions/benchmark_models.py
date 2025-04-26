@@ -8,7 +8,7 @@ from functions.preprocess import preprocess_model
 from functions.export_to_onnx import export_to_onnx
 from functions.dynamic_quant import dynamic_quantization
 from functions.get_device_name import get_cpu_name, get_gpu_name
-from functions.static_quant import static_quantization, YOLOCalibrationDataReader, ImageCalibrationDataReader
+from functions.static_quant import static_quantization, YOLOCalibrationDataReader
 
 def benchmark_yolo_fp(
     model_pt_path_str: str, # Changed name for clarity: Path to the original .pt file
@@ -393,7 +393,6 @@ def benchmark_yolo_static_quant(
     try:
         print(f"Initializing YOLOCalibrationDataReader...")
         calibration_datareader = YOLOCalibrationDataReader(**onnx_calibrator_kwargs)
-        # calibration_datareader = ImageCalibrationDataReader(image_paths=onnx_calibrator_kwargs['image_folder_or_list'])
     except Exception as e:
         print(f"Error initializing YOLOCalibrationDataReader: {e}")
         return None
