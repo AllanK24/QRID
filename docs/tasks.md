@@ -5,7 +5,7 @@ weight type, activation type supports:
 Miserable difference, but the best one is QInt8 for both weight and activation
 
 **To Check out**:
-calibrate_method
-what calibrator data reader is better: YOLOCalibrationDataReader vs ImageCalibrationDataReader
+calibrate_method - minmax is the best, others explode in memory
+what calibrator data reader is better: YOLOCalibrationDataReader vs ImageCalibrationDataReader - ours
 
 test the automatic node exclude function on newer yolo models: yolo11 and yolo12

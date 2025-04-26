@@ -7,6 +7,7 @@ from functions.benchmark import benchmark
 from functions.preprocess import preprocess_model
 from functions.export_to_onnx import export_to_onnx
 from functions.dynamic_quant import dynamic_quantization
+from helpers.exclude_nodes import yolo_head_nodes_to_skip
 from functions.get_device_name import get_cpu_name, get_gpu_name
 from functions.static_quant import static_quantization, YOLOCalibrationDataReader
 
@@ -398,6 +399,16 @@ def benchmark_yolo_static_quant(
         return None
     
     quantized_onnx_path = onnx_model_dir / f"{model_stem}_{precision}.onnx" # Save quantized model here
+    
+    # Exclude the nodes
+    print(f"Excluding nodes for static quantization...")
+    try:
+        onnx_static_quant_kwargs['nodes_to_exclude'] = yolo_head_nodes_to_skip(str(processed_onnx_path))
+        print(f"Found {len(onnx_static_quant_kwargs['nodes_to_exclude'])} nodes to exclude.")
+    except Exception as e:
+        print(f"Error excluding nodes for static quantization: {e}")
+        return None
+    
     static_quantization(
         model_input=processed_onnx_path,
         model_output=quantized_onnx_path,
