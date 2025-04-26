@@ -3,8 +3,8 @@
     "model_type": "STATIC_QINT8_QINT8_ONNX_Processed",
     "dataset": "coco.yaml",
     "hardware": "NVIDIA GeForce RTX 2070",
-    "mAP50-95": 0.4889144901053695,
-    "mAP50": 0.6598829445857294,
-    "latency_ms": 49.93477392518726,
-    "fps": 20.026124509909852
+    "mAP50-95": 0.5114627104045336,
+    "mAP50": 0.6829004674096477,
+    "latency_ms": 49.954097847176314,
+    "fps": 20.018377732679355
 }

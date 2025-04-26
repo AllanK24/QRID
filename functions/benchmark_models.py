@@ -299,7 +299,7 @@ def benchmark_yolo_static_quant(
     model_pt_path_str: str, # Changed name for clarity: Path to the original .pt file
     models_base_dir: str, # Base directory to store pt/onnx models (e.g., 'models/')
     results_base_dir: str, # Base directory to store results (e.g., 'results/')
-    onnx_calibrator_kwargs: dict, # Arguments for the YOLOCalibrationDataReader
+    calibration_image_paths: list, # Arguments for the YOLOCalibrationDataReader
     onnx_export_kwargs: dict={}, # Arguments for the ONNX export function
     onnx_preprocess_kwargs: dict={}, # Arguments for the ONNX pre-processing function
     onnx_static_quant_kwargs: dict={}, # Arguments for static quantization
@@ -313,7 +313,7 @@ def benchmark_yolo_static_quant(
         model_pt_path_str (str): Path to the original YOLOv8 PyTorch (.pt) model file.
         models_base_dir (str): Base directory to store organized model files (pt and onnx).
         results_base_dir (str): Base directory to store organized benchmark results.
-        onnx_calibrator_kwargs (dict): Arguments for the YOLOCalibrationDataReader.
+        calibration_image_paths (list): List of image paths for calibration.
         onnx_export_kwargs (dict): Arguments for the ONNX export function.
         onnx_preprocess_kwargs (dict): Arguments for the ONNX pre-processing function.
         onnx_static_quant_kwargs (dict): Arguments for static quantization.
@@ -390,10 +390,9 @@ def benchmark_yolo_static_quant(
         return None
     
     # --- Apply Static Quantization ---
-    onnx_calibrator_kwargs['model_path'] = str(processed_onnx_path) # Ensure the model path is set for calibration
     try:
-        print(f"Initializing YOLOCalibrationDataReader...")
-        calibration_datareader = YOLOCalibrationDataReader(**onnx_calibrator_kwargs)
+        print(f"Initializing YoloCalibrationDataReader...")
+        calibration_datareader = YOLOCalibrationDataReader(calibration_image_paths)
     except Exception as e:
         print(f"Error initializing YOLOCalibrationDataReader: {e}")
         return None
