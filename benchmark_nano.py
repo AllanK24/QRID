@@ -35,7 +35,7 @@ def main():
 
         print("Half Precision FP16")
         benchmark_yolo_fp(
-            model_pt_path_str="yolov8n",
+            model_pt_path_str=model,
             models_base_dir='/home/omni/Programming/QRID/QRID/models',
             results_base_dir='/home/omni/Programming/QRID/QRID/results',
             half=True,
@@ -76,9 +76,9 @@ def main():
                 "device": "cuda" if torch.cuda.is_available() else "cpu",
             },
             onnx_static_quant_kwargs = dict(
-                activation_type=QuantType.QInt8,   # signed
-                weight_type=QuantType.QInt8,       # signed
-                quant_format=QuantFormat.QDQ,      # leave as QDQ
+                activation_type=QuantType.QInt8, 
+                weight_type=QuantType.QInt8,       
+                quant_format=QuantFormat.QDQ,      
                 per_channel=True,
                 calibrate_method=CalibrationMethod.MinMax,
             )

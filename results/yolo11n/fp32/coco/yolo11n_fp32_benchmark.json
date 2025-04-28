@@ -1,0 +1,10 @@
+{
+    "model_name": "yolo11n",
+    "model_type": "FP32_ONNX_Processed",
+    "dataset": "coco.yaml",
+    "hardware": "NVIDIA GeForce RTX 2070",
+    "mAP50-95": 0.3912433497557292,
+    "mAP50": 0.5542736382027343,
+    "latency_ms": 4.898665589000666,
+    "fps": 204.13722509357925
+}
