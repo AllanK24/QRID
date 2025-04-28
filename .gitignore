@@ -4,3 +4,9 @@ functions/__pycache__
 qrid_thesis_toolkit.egg-info/
 runs/
 helpers/__pycache__/
+yolov8n.pt
+yolov8n.onnx
+yolov8n.engine
+yolov8n.cache
+yolov8n_static_quant.onnx
+yolov8n_processed.onnx

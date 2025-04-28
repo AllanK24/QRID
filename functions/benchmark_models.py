@@ -323,8 +323,8 @@ def benchmark_yolo_static_quant(
         dict: A dictionary containing benchmark results including mAP50, mAP50-95, latency, and FPS.
     """
     # --- Ensure Consistency for 'half', should be False for static quantization ---
-    onnx_export_kwargs['half'] = False
-    onnx_benchmark_kwargs['half'] = False
+    # onnx_export_kwargs['half'] = False
+    # onnx_benchmark_kwargs['half'] = False
     precision = f"static_{onnx_static_quant_kwargs.get('weight_type', 'QInt8')}_{onnx_static_quant_kwargs.get('activation_type', 'QInt8')}"
     
     original_pt_path = Path(model_pt_path_str)

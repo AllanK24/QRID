@@ -4,8 +4,6 @@ weight type, activation type supports:
 * QUInt8, QUInt8
 Miserable difference, but the best one is QInt8 for both weight and activation
 
-**To Check out**:
-calibrate_method - minmax is the best, others explode in memory
-what calibrator data reader is better: YOLOCalibrationDataReader vs ImageCalibrationDataReader - ours
-
-test the automatic node exclude function on newer yolo models: yolo11 and yolo12
+Ultralytics benchmark function uses:
+* model.val method with batch_size=1
+* Use TensorRT for Static Quantization -> it's 3x faster than dynamic quantization via ONNX

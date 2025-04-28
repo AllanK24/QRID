@@ -178,7 +178,7 @@ def main(fp32_model: str, quant_model: str, providers: List[str]):
 
 
 if __name__ == "__main__":
-    fp32 = "/home/omni/Programming/QRID/QRID/models/onnx/yolov8n/fp32/yolov8n_processed.onnx"
-    quant = "/home/omni/Programming/QRID/QRID/models/onnx/yolov8n/dynamic_QUInt8/yolov8n_dynamic_QUInt8.onnx"
+    fp32 = "/home/omni/Programming/QRID/QRID/models/onnx/yolov8l/fp32/yolov8l_processed.onnx"
+    quant = "/home/omni/Programming/QRID/QRID/models/onnx/yolov8l/static_QInt8_QInt8/yolov8l_static_QInt8_QInt8.onnx"
     use_providers = ["CPUExecutionProvider"]
     main(fp32, quant, use_providers)

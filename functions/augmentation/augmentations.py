@@ -180,7 +180,7 @@ def create_mixed_calibration_set(
 # --- Example Usage ---
 if __name__ == "__main__":
     # Assume you have the list of clean paths from the previous sampling step
-    clean_calibration_list_file = "./calibration_files_sampled_final.json" # From previous step
+    clean_calibration_list_file = "/home/omni/Programming/QRID/QRID/imgs_calibrated_for_ptq/calibration_files_sampled_final.json" # From previous step
     output_directory = "./mixed_calibration_data" # Base directory for outputs
     target_size = 1000
     ratio = 0.5 # 50% degraded
