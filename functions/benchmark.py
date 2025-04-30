@@ -12,9 +12,9 @@ def benchmark(model:YOLO, kwargs:dict=default_benchmark_kwargs):
         dict: A dictionary containing the results of the benchmark. This includes various performance metrics such as mAP, FPS, and other relevant statistics.
     """
     
-    if not isinstance(model, YOLO):
-        print("Model is not a YOLO object. Please provide a valid YOLO model.")
-        return
+    # if not isinstance(model, YOLO):
+    #     print("Model is not a YOLO object. Please provide a valid YOLO model.")
+    #     return
         
     # Merge default benchmark arguments with user-provided arguments
     kwargs = {**default_benchmark_kwargs, **kwargs}

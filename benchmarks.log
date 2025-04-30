@@ -23,3 +23,28 @@ Benchmarks complete for yolov8n.pt on /home/omni/Programming/QRID/QRID/my_benchm
 Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed
      Format Status❔  Size (MB)  metrics/mAP50-95(B)  Inference time (ms/im)     FPS
 0  TensorRT       ✅        5.8               0.3229                    1.63  614.98
+
+Benchmarks complete for yolov8n.pt on coco.yaml at imgsz=640 (155.21s)
+Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed
+     Format Status❔  Size (MB)  metrics/mAP50-95(B)  Inference time (ms/im)     FPS
+0  TensorRT       ✅       19.3                0.371                    2.51  398.05
+
+Benchmarks complete for yolov8n.pt on coco.yaml at imgsz=640 (300.01s)
+Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed
+     Format Status❔  Size (MB)  metrics/mAP50-95(B)  Inference time (ms/im)     FPS
+0  TensorRT       ✅        8.8                0.371                    1.76  569.31
+
+Benchmarks complete for yolov8n.pt on /home/omni/Programming/QRID/QRID/my_benchmark_yaml/coco_augmented_25.yaml at imgsz=640 (311.55s)
+Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed
+     Format Status❔  Size (MB)  metrics/mAP50-95(B)  Inference time (ms/im)     FPS
+0  TensorRT       ✅        5.8               0.2973                    1.65  606.14
+
+Benchmarks complete for yolov8n.pt on /home/omni/Programming/QRID/QRID/my_benchmark_yaml/coco_augmented_50.yaml at imgsz=640 (244.02s)
+Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed
+     Format Status❔  Size (MB)  metrics/mAP50-95(B)  Inference time (ms/im)     FPS
+0  TensorRT       ✅        5.7               0.2753                    1.65  606.11
+
+Benchmarks complete for yolov8n.pt on /home/omni/Programming/QRID/QRID/my_benchmark_yaml/coco_augmented_75.yaml at imgsz=640 (237.56s)
+Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed
+     Format Status❔  Size (MB)  metrics/mAP50-95(B)  Inference time (ms/im)     FPS
+0  TensorRT       ✅        5.7               0.2973                    1.64  609.93
