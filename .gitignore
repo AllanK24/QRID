@@ -10,3 +10,4 @@ yolov8n.engine
 yolov8n.cache
 yolov8n_static_quant.onnx
 yolov8n_processed.onnx
+augmented_sets

@@ -18,3 +18,8 @@ Benchmarks complete for yolov8n.pt on coco.yaml at imgsz=640 (317.36s)
 Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed
      Format Status❔  Size (MB)  metrics/mAP50-95(B)  Inference time (ms/im)     FPS
 0  TensorRT       ✅        5.6               0.3299                    1.64  609.07
+
+Benchmarks complete for yolov8n.pt on /home/omni/Programming/QRID/QRID/my_benchmark_yaml/clean_coco.yaml at imgsz=640 (238.94s)
+Benchmarks legend:  - ✅ Success  - ❎ Export passed but validation failed  - ❌️ Export failed
+     Format Status❔  Size (MB)  metrics/mAP50-95(B)  Inference time (ms/im)     FPS
+0  TensorRT       ✅        5.8               0.3229                    1.63  614.98
