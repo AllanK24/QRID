@@ -84,3 +84,18 @@ default_onnx_static_quant_kwargs = {
     # "calibration_providers": ['CPUExecutionProvider'], # List of execution providers to use for calibration. This is important for compatibility with different hardware accelerators.
     "extra_options": common_extra_options_static_quant.copy()
 }
+
+# TensorRT Export kwargs #
+default_tensorrt_export_kwargs = {
+    'format': "engine",
+    'imgsz': 640,
+    'half': False,
+    'int8': True,
+    'dynamic': False,
+    'simplify': True,
+    'nms': False, # Setting to True will cause an error
+    'batch': 1,
+    'data': "coco.yaml",
+    'fraction': 0.1, # Fraction of the dataset to use for calibration
+    'device': "cuda"
+}
