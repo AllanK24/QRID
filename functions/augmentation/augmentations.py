@@ -1,5 +1,6 @@
 import os
 import json
+import yaml # Make sure PyYAML is installed: pip install pyyaml
 import random
 import cv2 # Make sure OpenCV is installed: pip install opencv-python
 import numpy as np
@@ -171,37 +172,147 @@ def create_mixed_calibration_set( # Renamed again
     except Exception as e:
         print(f"Error saving final JSON list: {e}")
         return None
+    
+    
 
-# --- Example Usage ---
-if __name__ == "__main__":
-    # Assume you have the list of clean paths from the previous sampling step
-    with open("/home/omni/Programming/QRID/QRID/imgs_calibrated_for_ptq/calibration_files_sampled_final.json", "r") as f:
-        calibration_image_paths = json.load(f)
-    
-    ratios = [
-        0.25,
-        0.5,
-        0.75,
-    ]
-    
-    for ratio in ratios:
-        print(f"\nGenerating mixed calibration set with degradation ratio: {ratio}")
-        
-        output_directory = f"/home/omni/Programming/QRID/QRID/augmented_sets/calibration_data_from_train2017_{ratio}" # Base directory for outputs
-        target_size = 1000 # Total size of the mixed set
+# Assume your COCO class names are defined elsewhere or loaded
+# Example: coco_class_names = [...] (List of 80 names)
+
+def create_single_degraded_val_set(
+    original_val_images_dir: str,
+    original_coco_labels_dir: str, # Path to parent 'labels' dir
+    output_dataset_root: str,
+    degradation_name: str, # e.g., "noisy_low", "blurry_medium"
+    albumentations_transform: A.Compose, # The specific transform to apply
+    coco_class_names: list[str] # List of class names for data.yaml
+):
+    """
+    Creates a degraded COCO-like validation set by applying a specific
+    Albumentations transform to all images in the original validation set.
+
+    Args:
+        original_val_images_dir (str): Path to the original COCO val images (e.g., .../coco/images/val2017).
+        original_coco_labels_dir (str): Path to the original COCO 'labels' directory.
+        output_dataset_root (str): The root directory for the new degraded dataset structure.
+        degradation_name (str): A short name for the degradation (used in paths/yaml).
+        albumentations_transform (A.Compose): The specific Albumentations transform to apply to each image.
+        coco_class_names (list[str]): List of COCO class names.
+
+    Returns:
+        str | None: Path to the generated data.yaml file if successful, None otherwise.
+    """
+    orig_img_path = Path(original_val_images_dir)
+    orig_lbl_path = Path(original_coco_labels_dir)
+    root_path = Path(output_dataset_root)
+    images_path = root_path / "images"
+    labels_path = root_path / "labels"
+    val_images_path = images_path / "val2017"
+    val_labels_path = labels_path / "val2017" # Need specific val labels dir
+    train_images_path = images_path / "train2017" # Empty dir potentially needed
+
+    print(f"\n--- Creating Degraded Validation Set: {degradation_name} ---")
+    print(f"Output root: {root_path}")
+
+    if not orig_img_path.is_dir():
+        print(f"Error: Original validation image directory not found: {orig_img_path}")
+        return None
+    if not (orig_lbl_path / "val2017").is_dir(): # Check for the specific val2017 subdir
+         print(f"Error: Original validation labels directory ('val2017' subdir) not found within: {orig_lbl_path}")
+         return None
+
+    try:
+        # Create directories
+        root_path.mkdir(parents=True, exist_ok=True)
+        images_path.mkdir(exist_ok=True)
+        labels_path.mkdir(exist_ok=True)
+        val_images_path.mkdir(exist_ok=True)
+        val_labels_path.mkdir(exist_ok=True) # Create destination for val labels
+        train_images_path.mkdir(exist_ok=True) # Create empty train images dir
+
+        # --- Copy Labels (Only val2017 needed) ---
+        print(f"Copying val2017 labels from {orig_lbl_path / 'val2017'}...")
+        source_val_labels = orig_lbl_path / "val2017"
+        # Copy contents of source_val_labels into val_labels_path
+        for item in tqdm(os.listdir(source_val_labels), desc="Copying labels"):
+             s = source_val_labels / item
+             d = val_labels_path / item
+             if s.is_file() and s.suffix == '.txt': # Ensure it's a label file
+                 shutil.copy2(s, d)
+
+        # --- Process and Save Degraded Images ---
+        print(f"Applying '{degradation_name}' degradation to images...")
+        image_files = sorted([p for p in orig_img_path.glob("*") if p.suffix.lower() in (".jpg", ".jpeg", ".png", ".bmp", ".webp")])
+        processed_image_paths_relative = [] # Store relative paths for val2017.txt
+        processed_count = 0
+        skipped_count = 0
+
+        for img_file_path in tqdm(image_files, desc=f"Degrading ({degradation_name})"):
+            try:
+                img = cv2.imread(str(img_file_path))
+                if img is None:
+                    print(f"Warning: Could not read image {img_file_path}. Skipping.")
+                    skipped_count += 1
+                    continue
+
+                # Apply the specific degradation transform
+                augmented_data = albumentations_transform(image=img)
+                degraded_img_np = augmented_data['image']
+
+                # Save degraded image with the original name to the new location
+                dest_img_path = val_images_path / img_file_path.name
+                success = cv2.imwrite(str(dest_img_path), degraded_img_np)
+
+                if success:
+                    # Store relative path for val2017.txt
+                    relative_path = dest_img_path.relative_to(root_path)
+                    processed_image_paths_relative.append(f"./{relative_path}")
+                    processed_count += 1
+                else:
+                    print(f"Warning: Failed to save degraded image {dest_img_path}. Skipping.")
+                    skipped_count += 1
+
+            except Exception as e:
+                print(f"Error processing image {img_file_path}: {e}. Skipping.")
+                skipped_count += 1
+
+        print(f"Processed {processed_count} images, skipped {skipped_count}.")
+        if processed_count == 0:
+            print("Error: No images were successfully processed.")
+            return None
+
+        # --- Create val2017.txt ---
+        val_txt_path = root_path / "val2017.txt"
+        print(f"Creating {val_txt_path}...")
         try:
-            print("Applying augmentations and generating mixed calibration set for ratio:", ratio)
-            
-            # Generate the mixed set
-            mixed_paths = create_mixed_calibration_set(
-                clean_image_paths=calibration_image_paths,
-                output_dir=output_directory,
-                target_total_size=target_size,
-                degradation_ratio=ratio,
-                seed=42
-            )
-
-            print(f"Mixed calibration set generated with {len(mixed_paths)} images. Ratio: {ratio}")
-
+            with open(val_txt_path, 'w') as f_val:
+                for rel_path in sorted(processed_image_paths_relative): # Sort for consistency
+                    f_val.write(f"{rel_path}\n")
         except Exception as e:
-            print(f"An error occurred: {e}")
+             print(f"Error writing {val_txt_path}: {e}")
+             return None
+
+        # --- Create data.yaml ---
+        yaml_path = root_path / f"data_{degradation_name}.yaml" # Unique yaml name
+        print(f"Creating {yaml_path}...")
+        num_classes = len(coco_class_names)
+        yaml_data = {
+            'path': str(root_path.resolve()), # Absolute path
+            'train': 'train2017.txt', # Relative path to empty dir
+            'val': 'val2017.txt',     # Relative path to our degraded images
+            'test': '',                  # Optional
+            'nc': num_classes,           # Number of classes
+            'names': {i: name for i, name in enumerate(coco_class_names)}
+        }
+        try:
+            with open(yaml_path, 'w') as f_yaml:
+                yaml.dump(yaml_data, f_yaml, default_flow_style=False, sort_keys=False)
+        except Exception as e:
+             print(f"Error writing {yaml_path}: {e}")
+             return None
+
+        print(f"Degraded validation set '{degradation_name}' created successfully.")
+        return str(yaml_path) # Return path to the yaml file
+
+    except Exception as e:
+        print(f"Error creating degraded dataset structure for '{degradation_name}': {e}")
+        return None

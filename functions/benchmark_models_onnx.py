@@ -9,19 +9,35 @@ from functions.export_to_onnx import export_to_onnx
 from functions.dynamic_quant import dynamic_quantization
 from helpers.exclude_nodes import yolo_head_nodes_to_skip
 from functions.get_device_name import get_cpu_name, get_gpu_name
-from functions.export_to_tensorrt import export_to_tensorrt
+from functions.static_quant import static_quantization, YOLOCalibrationDataReader
 
 def benchmark_yolo_fp(
     model_pt_path_str: str, # Changed name for clarity: Path to the original .pt file
     models_base_dir: str, # Base directory to store pt/onnx models (e.g., 'models/')
     results_base_dir: str, # Base directory to store results (e.g., 'results/')
     half: bool=False, # Use half precision (FP16) if True
-    tensorrt_export_kwargs: dict={}, # Arguments for TensorRT benchmark
-    benchmark_kwargs: dict={}, # Must contain the 'data' key for the dataset yaml
+    onnx_export_kwargs: dict={},
+    onnx_preprocess_kwargs: dict={},
+    onnx_benchmark_kwargs: dict={}, # Must contain the 'data' key for the dataset yaml
 ):
+    """
+    Benchmarks a YOLO FP32/FP16 model by exporting to ONNX, pre-processing,
+    evaluating the processed ONNX model, and saving results.
+
+    Args:
+        model_pt_path_str (str): Path to the original YOLOv8 PyTorch (.pt) model file.
+        models_base_dir (str): Base directory to store organized model files (pt and onnx).
+        results_base_dir (str): Base directory to store organized benchmark results.
+        onnx_export_kwargs (dict): Arguments for the ONNX export function.
+        onnx_preprocess_kwargs (dict): Arguments for the ONNX pre-processing function.
+        onnx_benchmark_kwargs (dict): Arguments for the benchmark function (MUST include 'data' key).
+    
+    Returns:
+        dict: A dictionary containing benchmark results including mAP50, mAP50-95, latency, and FPS.
+    """
     # --- Ensure Consistency for 'half' ---
-    tensorrt_export_kwargs['half'] = half
-    benchmark_kwargs['half'] = half # 
+    onnx_export_kwargs['half'] = half
+    onnx_benchmark_kwargs['half'] = half # Ensure benchmark also knows the target precision
     precision = "fp16" if half else "fp32"
     
     original_pt_path = Path(model_pt_path_str)
@@ -36,12 +52,12 @@ def benchmark_yolo_fp(
 
     # --- Define Directory Structure ---
     pt_model_dir = Path(models_base_dir) / "pt" / model_stem / precision
-    engine_model_dir = Path(models_base_dir) / "engine" / model_stem / precision
+    onnx_model_dir = Path(models_base_dir) / "onnx" / model_stem / precision
     results_dir = Path(results_base_dir) / model_stem / precision
 
     # --- Create Directories ---
     os.makedirs(pt_model_dir, exist_ok=True)
-    os.makedirs(engine_model_dir, exist_ok=True)
+    os.makedirs(onnx_model_dir, exist_ok=True)
     # Results dir will be created later based on dataset
 
     # Move the original PT model to the organized directory
@@ -53,45 +69,62 @@ def benchmark_yolo_fp(
         print(f"Error moving model {original_pt_path} to {organized_pt_path}: {e}")
         return None
 
-    # --- Export the Copied PT model to TensorRT ---
-    print(f"Exporting PyTorch model to TensorRT Engine...")
-    exported_engine_path = export_to_tensorrt(
+    # --- Export the Copied PT model to ONNX ---
+    exported_onnx_path = pt_model_dir / f"{model_stem}.onnx" # Save initial ONNX next to its PT source
+    print(f"Exporting {organized_pt_path} to {exported_onnx_path}...")
+    exported_onnx_path = export_to_onnx(
         model_path=organized_pt_path,
-        export_kwargs=tensorrt_export_kwargs,
+        export_kwargs=onnx_export_kwargs,
     )
-    print(f"Exported TensorRT model to {exported_engine_path}")
     
-    # Move the exported TensorRT model to the TensorRT directory
+    # Move the exported ONNX model to the ONNX directory
     try:
-        shutil.move(exported_engine_path, engine_model_dir / str(exported_engine_path).split("/")[-1])
-        print(f"Moved exported TensorRT model to {exported_engine_path}")
+        shutil.move(exported_onnx_path, onnx_model_dir / str(exported_onnx_path).split("/")[-1])
+        print(f"Moved exported ONNX model to {onnx_model_dir}")
     except Exception as e:
-        print(f"Error moving exported TensorRT model to {exported_engine_path}: {e}")
+        print(f"Error moving exported ONNX model to {onnx_model_dir}: {e}")
         return None
 
-    # --- Perform Benchmark on the TensorRT model ---
-    dataset_yaml_path_str = benchmark_kwargs.get("data", "coco.yaml")
+    # --- Preprocess the Exported ONNX model ---
+    processed_onnx_path = onnx_model_dir / f"{model_stem}_processed.onnx" # Save processed model here
+    try:
+        # Assuming preprocess_model takes input and output paths
+        preprocess_model(
+            input_model_path=onnx_model_dir/f"{model_stem}.onnx",
+            output_model_path=processed_onnx_path,
+            preprocess_kwargs=onnx_preprocess_kwargs,
+        )
+        # Check if the output file was actually created
+        if not processed_onnx_path.exists():
+             raise FileNotFoundError("Preprocessed ONNX file was not created.")
+        print("Preprocessed ONNX file was created.")
+    except Exception as e:
+        print(f"Error preprocessing ONNX model {exported_onnx_path}: {e}")
+        return None
+
+    # --- Perform Benchmark on the Preprocessed ONNX model ---
+    dataset_yaml_path_str = onnx_benchmark_kwargs.get("data", "coco.yaml")
     dataset_stem = Path(dataset_yaml_path_str).stem # e.g., "coco" or "coco_noisy_low"
 
     try:
         # Load the processed ONNX model for benchmarking
-        model_engine = YOLO(str(exported_engine_path)) # Must use string path for YOLO constructor
+        model_onnx = YOLO(str(processed_onnx_path)) # Must use string path for YOLO constructor
         benchmark_results_obj = benchmark( # Assuming benchmark returns the results object
-            model=model_engine,
-            kwargs=benchmark_kwargs, # Pass all benchmark args (includes data)
+            model=model_onnx,
+            kwargs=onnx_benchmark_kwargs, # Pass all benchmark args (includes data)
         )
         if benchmark_results_obj is None:
             raise RuntimeError("Benchmark function returned None or failed internally.")
     except Exception as e:
-        print(f"Error benchmarking model {exported_engine_path}: {e}")
+        print(f"Error benchmarking model {processed_onnx_path}: {e}")
         return None
 
     # --- Extract and Save Results ---
     results_data = {
         "model_name": original_pt_path.stem,
         "model_type": f"{precision.upper()}_ONNX_Processed",
-        "val_dataset": dataset_yaml_path_str,
-        "hardware": get_gpu_name() if benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
+        "dataset": dataset_yaml_path_str,
+        "hardware": get_gpu_name() if onnx_benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
         "mAP50-95": benchmark_results_obj.results_dict.get('metrics/mAP50-95(B)', None),
         "mAP50": benchmark_results_obj.results_dict.get('metrics/mAP50(B)', None),
         "latency_ms": benchmark_results_obj.speed.get('inference', None),
@@ -122,7 +155,7 @@ def benchmark_yolo_dynamic_quant(
     onnx_export_kwargs: dict={}, # Arguments for the ONNX export function
     onnx_preprocess_kwargs: dict={}, # Arguments for the ONNX pre-processing function
     onnx_dynamic_quant_kwargs: dict={}, # Arguments for dynamic quantization
-    benchmark_kwargs: dict={}, # Must contain the 'data' key for the dataset yaml
+    onnx_benchmark_kwargs: dict={}, # Must contain the 'data' key for the dataset yaml
 ):
     """
     Benchmarks a YOLO model with Dynamic Quantization by exporting to ONNX, pre-processing,
@@ -142,7 +175,7 @@ def benchmark_yolo_dynamic_quant(
     """
     # --- Ensure Consistency for 'half', should be False for dynamic quantization ---
     onnx_export_kwargs['half'] = False
-    benchmark_kwargs['half'] = False # Ensure benchmark also knows the target precision
+    onnx_benchmark_kwargs['half'] = False # Ensure benchmark also knows the target precision
     precision = f"dynamic_{onnx_dynamic_quant_kwargs.get('weight_type', 'QUInt8')}"
     
     original_pt_path = Path(model_pt_path_str)
@@ -216,7 +249,7 @@ def benchmark_yolo_dynamic_quant(
     )
 
     # --- Perform Benchmark on the Preprocessed ONNX model ---
-    dataset_yaml_path_str = benchmark_kwargs.get("data", "coco.yaml")
+    dataset_yaml_path_str = onnx_benchmark_kwargs.get("data", "coco.yaml")
     dataset_stem = Path(dataset_yaml_path_str).stem # e.g., "coco" or "coco_noisy_low"
 
     try:
@@ -224,7 +257,7 @@ def benchmark_yolo_dynamic_quant(
         model_onnx = YOLO(str(quantized_onnx_path)) # Must use string path for YOLO constructor
         benchmark_results_obj = benchmark( # Assuming benchmark returns the results object
             model=model_onnx,
-            kwargs=benchmark_kwargs, # Pass all benchmark args (includes data)
+            kwargs=onnx_benchmark_kwargs, # Pass all benchmark args (includes data)
         )
         if benchmark_results_obj is None:
             raise RuntimeError("Benchmark function returned None or failed internally.")
@@ -236,8 +269,8 @@ def benchmark_yolo_dynamic_quant(
     results_data = {
         "model_name": original_pt_path.stem,
         "model_type": f"{precision.upper()}_ONNX_Processed",
-        "val_dataset": dataset_yaml_path_str,
-        "hardware": get_gpu_name() if benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
+        "dataset": dataset_yaml_path_str,
+        "hardware": get_gpu_name() if onnx_benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
         "mAP50-95": benchmark_results_obj.results_dict.get('metrics/mAP50-95(B)', None),
         "mAP50": benchmark_results_obj.results_dict.get('metrics/mAP50(B)', None),
         "latency_ms": benchmark_results_obj.speed.get('inference', None),
@@ -262,24 +295,42 @@ def benchmark_yolo_dynamic_quant(
         return None # Indicate failure
 
 
-def benchmark_yolo_static_quant_tensorrt(
+def benchmark_yolo_static_quant(
     model_pt_path_str: str, # Changed name for clarity: Path to the original .pt file
     models_base_dir: str, # Base directory to store pt/onnx models (e.g., 'models/')
     results_base_dir: str, # Base directory to store results (e.g., 'results/')
-    tensorrt_export_kwargs: dict={}, # Arguments for TensorRT benchmark
-    benchmark_kwargs: dict={}, # Must contain the 'data' key for the dataset yaml
+    calibration_image_paths: list, # Arguments for the YOLOCalibrationDataReader
+    onnx_export_kwargs: dict={}, # Arguments for the ONNX export function
+    onnx_preprocess_kwargs: dict={}, # Arguments for the ONNX pre-processing function
+    onnx_static_quant_kwargs: dict={}, # Arguments for static quantization
+    onnx_benchmark_kwargs: dict={}, # Must contain the 'data' key for the dataset yaml
 ):
-    # --- Ensure Consistency for 'half' ---
-    tensorrt_export_kwargs['half'] = False
-    benchmark_kwargs['half'] = False
+    """
+    Benchmarks a YOLO model with Static Quantization with Calibration by exporting to ONNX, pre-processing, applying static quantization with calibration,
+    and evaluating the quantized ONNX model, and saving results.
+
+    Args:
+        model_pt_path_str (str): Path to the original YOLOv8 PyTorch (.pt) model file.
+        models_base_dir (str): Base directory to store organized model files (pt and onnx).
+        results_base_dir (str): Base directory to store organized benchmark results.
+        calibration_image_paths (list): List of image paths for calibration.
+        onnx_export_kwargs (dict): Arguments for the ONNX export function.
+        onnx_preprocess_kwargs (dict): Arguments for the ONNX pre-processing function.
+        onnx_static_quant_kwargs (dict): Arguments for static quantization.
+        onnx_benchmark_kwargs (dict): Arguments for the benchmark function (MUST include 'data' key).
     
-    # --- Set Calibration Sets ---
-    calibration_set = Path(tensorrt_export_kwargs.get("data"))
+    Returns:
+        dict: A dictionary containing benchmark results including mAP50, mAP50-95, latency, and FPS.
+    """
+    # --- Ensure Consistency for 'half', should be False for static quantization ---
+    # onnx_export_kwargs['half'] = False
+    # onnx_benchmark_kwargs['half'] = False
+    precision = f"static_{onnx_static_quant_kwargs.get('weight_type', 'QInt8')}_{onnx_static_quant_kwargs.get('activation_type', 'QInt8')}"
     
     original_pt_path = Path(model_pt_path_str)
     if not original_pt_path.exists():
         print(f"Input PyTorch model not found at {original_pt_path}, downloading model...")
-        # Attempt downloading the model automatically if it doesn't exist
+        # Attempt to download the model if it doesn't exist
         model = YOLO(model_pt_path_str, task="detect")
         original_pt_path = Path(model.ckpt_path)
         print(f"Downloaded model to {original_pt_path}")
@@ -287,13 +338,13 @@ def benchmark_yolo_static_quant_tensorrt(
     model_stem = original_pt_path.stem # e.g., "yolov8n"
 
     # --- Define Directory Structure ---
-    pt_model_dir = Path(models_base_dir) / "pt" / model_stem / calibration_set.stem
-    engine_model_dir = Path(models_base_dir) / "engine" / model_stem / calibration_set.stem
-    results_dir = Path(results_base_dir) / model_stem / calibration_set.stem
+    pt_model_dir = Path(models_base_dir) / "pt" / model_stem / precision
+    onnx_model_dir = Path(models_base_dir) / "onnx" / model_stem / precision
+    results_dir = Path(results_base_dir) / model_stem / precision
 
     # --- Create Directories ---
     os.makedirs(pt_model_dir, exist_ok=True)
-    os.makedirs(engine_model_dir, exist_ok=True)
+    os.makedirs(onnx_model_dir, exist_ok=True)
     # Results dir will be created later based on dataset
 
     # Move the original PT model to the organized directory
@@ -305,46 +356,88 @@ def benchmark_yolo_static_quant_tensorrt(
         print(f"Error moving model {original_pt_path} to {organized_pt_path}: {e}")
         return None
 
-    # --- Export the Copied PT model to TensorRT ---
-    print(f"Exporting PyTorch model to TensorRT Engine...")
-    exported_engine_path = export_to_tensorrt(
+    # --- Export the Copied PT model to ONNX ---
+    exported_onnx_path = pt_model_dir / f"{model_stem}.onnx" # Save initial ONNX next to its PT source
+    print(f"Exporting {organized_pt_path} to {exported_onnx_path}...")
+    exported_onnx_path = export_to_onnx(
         model_path=organized_pt_path,
-        export_kwargs=tensorrt_export_kwargs,
+        export_kwargs=onnx_export_kwargs,
     )
-    print(f"Exported TensorRT model to {exported_engine_path}")
     
-    # Move the exported TensorRT model to the TensorRT directory
+    # Move the exported ONNX model to the ONNX directory
     try:
-        shutil.move(exported_engine_path, engine_model_dir / str(exported_engine_path).split("/")[-1])
-        print(f"Moved exported TensorRT model to {exported_engine_path}")
+        shutil.move(exported_onnx_path, onnx_model_dir / str(exported_onnx_path).split("/")[-1])
+        print(f"Moved exported ONNX model to {onnx_model_dir}")
     except Exception as e:
-        print(f"Error moving exported TensorRT model to {exported_engine_path}: {e}")
+        print(f"Error moving exported ONNX model to {onnx_model_dir}: {e}")
         return None
 
-    # --- Perform Benchmark on the TensorRT model ---
-    dataset_yaml_path_str = benchmark_kwargs.get("data", "coco.yaml")
+    # --- Preprocess the Exported ONNX model ---
+    processed_onnx_path = onnx_model_dir / f"{model_stem}_processed.onnx" # Save processed model here
+    try:
+        # Assuming preprocess_model takes input and output paths
+        preprocess_model(
+            input_model_path=onnx_model_dir/f"{model_stem}.onnx",
+            output_model_path=processed_onnx_path,
+            preprocess_kwargs=onnx_preprocess_kwargs,
+        )
+        # Check if the output file was actually created
+        if not processed_onnx_path.exists():
+             raise FileNotFoundError("Preprocessed ONNX file was not created.")
+        print("Preprocessed ONNX file was created.")
+    except Exception as e:
+        print(f"Error preprocessing ONNX model {exported_onnx_path}: {e}")
+        return None
+    
+    # --- Apply Static Quantization ---
+    try:
+        print(f"Initializing YoloCalibrationDataReader...")
+        calibration_datareader = YOLOCalibrationDataReader(calibration_image_paths)
+    except Exception as e:
+        print(f"Error initializing YOLOCalibrationDataReader: {e}")
+        return None
+    
+    quantized_onnx_path = onnx_model_dir / f"{model_stem}_{precision}.onnx" # Save quantized model here
+    
+    # Exclude the nodes
+    print(f"Excluding nodes for static quantization...")
+    try:
+        onnx_static_quant_kwargs['nodes_to_exclude'] = yolo_head_nodes_to_skip(str(processed_onnx_path))
+        print(f"Found {len(onnx_static_quant_kwargs['nodes_to_exclude'])} nodes to exclude.")
+    except Exception as e:
+        print(f"Error excluding nodes for static quantization: {e}")
+        return None
+    
+    static_quantization(
+        model_input=processed_onnx_path,
+        model_output=quantized_onnx_path,
+        calibration_data=calibration_datareader,
+        quant_kwargs=onnx_static_quant_kwargs,
+    )
+
+    # --- Perform Benchmark on the Preprocessed | Quantized ONNX model ---
+    dataset_yaml_path_str = onnx_benchmark_kwargs.get("data", "coco.yaml")
     dataset_stem = Path(dataset_yaml_path_str).stem # e.g., "coco" or "coco_noisy_low"
 
     try:
         # Load the processed ONNX model for benchmarking
-        model_engine = YOLO(str(exported_engine_path)) # Must use string path for YOLO constructor
+        model_onnx = YOLO(str(quantized_onnx_path)) # Must use string path for YOLO constructor
         benchmark_results_obj = benchmark( # Assuming benchmark returns the results object
-            model=model_engine,
-            kwargs=benchmark_kwargs, # Pass all benchmark args (includes data)
+            model=model_onnx,
+            kwargs=onnx_benchmark_kwargs, # Pass all benchmark args (includes data)
         )
         if benchmark_results_obj is None:
             raise RuntimeError("Benchmark function returned None or failed internally.")
     except Exception as e:
-        print(f"Error benchmarking model {exported_engine_path}: {e}")
+        print(f"Error benchmarking model {quantized_onnx_path}: {e}")
         return None
 
     # --- Extract and Save Results ---
     results_data = {
         "model_name": original_pt_path.stem,
-        "model_type": f"INT8_TENSORRT",
-        "calibration_set": calibration_set.stem,
-        "val_dataset": dataset_yaml_path_str,
-        "hardware": get_gpu_name() if benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
+        "model_type": f"{precision.upper()}_ONNX_Processed",
+        "dataset": dataset_yaml_path_str,
+        "hardware": get_gpu_name() if onnx_benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
         "mAP50-95": benchmark_results_obj.results_dict.get('metrics/mAP50-95(B)', None),
         "mAP50": benchmark_results_obj.results_dict.get('metrics/mAP50(B)', None),
         "latency_ms": benchmark_results_obj.speed.get('inference', None),
@@ -356,7 +449,7 @@ def benchmark_yolo_static_quant_tensorrt(
     # Define results file path
     dataset_results_dir = results_dir / dataset_stem
     os.makedirs(dataset_results_dir, exist_ok=True)
-    results_json_path = dataset_results_dir / f"{model_stem}_{calibration_set.stem}_benchmark.json"
+    results_json_path = dataset_results_dir / f"{model_stem}_{precision}_benchmark.json"
 
     print(f"Saving benchmark results to {results_json_path}...")
     try:

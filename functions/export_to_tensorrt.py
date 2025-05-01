@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 from functions.constants import default_tensorrt_export_kwargs
 
-def export_to_tensorrt(model: YOLO, kwargs:dict):
+def export_to_tensorrt(model: YOLO, kwargs:dict=default_tensorrt_export_kwargs) -> str:
     try:
         kwatgs = {**default_tensorrt_export_kwargs, **kwargs}
         exported_path = model.export(

@@ -38,7 +38,7 @@ default_onnx_dynamic_quant_kwargs = {
 # Benchmarking constants #
 default_benchmark_kwargs = {
     "imgsz": 640,
-    "device": "cpu",
+    "device": "cuda",
     "iou": 0.6,
     "conf": 0.001,
     "max_det": 300,
@@ -90,12 +90,12 @@ default_tensorrt_export_kwargs = {
     'format': "engine",
     'imgsz': 640,
     'half': False,
-    'int8': True,
+    'int8': False,
     'dynamic': False,
     'simplify': True,
     'nms': False, # Setting to True will cause an error
     'batch': 1,
     'data': "coco.yaml",
-    'fraction': 0.1, # Fraction of the dataset to use for calibration
+    'fraction': 1, # Fraction of the dataset to use for calibration
     'device': "cuda"
 }
