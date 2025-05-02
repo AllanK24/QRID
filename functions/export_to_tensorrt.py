@@ -3,10 +3,9 @@ from functions.constants import default_tensorrt_export_kwargs
 
 def export_to_tensorrt(model: YOLO, kwargs:dict=default_tensorrt_export_kwargs) -> str:
     try:
-        kwatgs = {**default_tensorrt_export_kwargs, **kwargs}
+        kwargs = {**default_tensorrt_export_kwargs, **kwargs}
         exported_path = model.export(
-            model=model,
-            **kwatgs,
+            **kwargs,
         )
     except Exception as e:
         print(f"Error exporting to TensorRT: {e}")

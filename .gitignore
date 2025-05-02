@@ -17,3 +17,4 @@ benchmark_results_fp32.json
 benchmark_results_static.json
 yolo12x_benchmarks
 yolo12n_benchmarks
+results/

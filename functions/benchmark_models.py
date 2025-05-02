@@ -7,7 +7,6 @@ from functions.benchmark import benchmark
 from functions.preprocess import preprocess_model
 from functions.export_to_onnx import export_to_onnx
 from functions.dynamic_quant import dynamic_quantization
-from helpers.exclude_nodes import yolo_head_nodes_to_skip
 from functions.get_device_name import get_cpu_name, get_gpu_name
 from functions.export_to_tensorrt import export_to_tensorrt
 
@@ -21,7 +20,7 @@ def benchmark_yolo_fp(
 ):
     # --- Ensure Consistency for 'half' ---
     tensorrt_export_kwargs['half'] = half
-    benchmark_kwargs['half'] = half # 
+    benchmark_kwargs['half'] = half
     precision = "fp16" if half else "fp32"
     
     original_pt_path = Path(model_pt_path_str)
@@ -56,10 +55,19 @@ def benchmark_yolo_fp(
     # --- Export the Copied PT model to TensorRT ---
     print(f"Exporting PyTorch model to TensorRT Engine...")
     exported_engine_path = export_to_tensorrt(
-        model_path=organized_pt_path,
-        export_kwargs=tensorrt_export_kwargs,
+        model=model,
+        kwargs=tensorrt_export_kwargs,
     )
     print(f"Exported TensorRT model to {exported_engine_path}")
+    
+    # Delete the ONNX file
+    try:
+        print("Attempting to delete the ONNX file...")    
+        os.remove(f'{original_pt_path.stem}.onnx')
+        print("Deleted ONNX file successfully.")
+    except Exception as e:
+        print(f"Error deleting ONNX file: {e}")
+        return None
     
     # Move the exported TensorRT model to the TensorRT directory
     try:
@@ -73,9 +81,11 @@ def benchmark_yolo_fp(
     dataset_yaml_path_str = benchmark_kwargs.get("data", "coco.yaml")
     dataset_stem = Path(dataset_yaml_path_str).stem # e.g., "coco" or "coco_noisy_low"
 
+    exported_engine_abs_path = engine_model_dir / str(exported_engine_path).split("/")[-1]
+    
     try:
         # Load the processed ONNX model for benchmarking
-        model_engine = YOLO(str(exported_engine_path)) # Must use string path for YOLO constructor
+        model_engine = YOLO(str(exported_engine_abs_path), task="detect") # Must use string path for YOLO constructor
         benchmark_results_obj = benchmark( # Assuming benchmark returns the results object
             model=model_engine,
             kwargs=benchmark_kwargs, # Pass all benchmark args (includes data)
@@ -83,13 +93,13 @@ def benchmark_yolo_fp(
         if benchmark_results_obj is None:
             raise RuntimeError("Benchmark function returned None or failed internally.")
     except Exception as e:
-        print(f"Error benchmarking model {exported_engine_path}: {e}")
+        print(f"Error benchmarking model {exported_engine_abs_path}: {e}")
         return None
 
     # --- Extract and Save Results ---
     results_data = {
         "model_name": original_pt_path.stem,
-        "model_type": f"{precision.upper()}_ONNX_Processed",
+        "model_type": f"{precision.upper()}_TENSORRT",
         "val_dataset": dataset_yaml_path_str,
         "hardware": get_gpu_name() if benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
         "mAP50-95": benchmark_results_obj.results_dict.get('metrics/mAP50-95(B)', None),
@@ -273,6 +283,8 @@ def benchmark_yolo_static_quant_tensorrt(
     tensorrt_export_kwargs['half'] = False
     benchmark_kwargs['half'] = False
     
+    precision = "int8" # Static quantization is always int8
+    
     # --- Set Calibration Sets ---
     calibration_set = Path(tensorrt_export_kwargs.get("data"))
     
@@ -287,9 +299,9 @@ def benchmark_yolo_static_quant_tensorrt(
     model_stem = original_pt_path.stem # e.g., "yolov8n"
 
     # --- Define Directory Structure ---
-    pt_model_dir = Path(models_base_dir) / "pt" / model_stem / calibration_set.stem
-    engine_model_dir = Path(models_base_dir) / "engine" / model_stem / calibration_set.stem
-    results_dir = Path(results_base_dir) / model_stem / calibration_set.stem
+    pt_model_dir = Path(models_base_dir) / "pt" / model_stem / f"static_{precision}"/ str(calibration_set.parent).split('/')[-1]
+    engine_model_dir = Path(models_base_dir) / "engine" / model_stem / f"static_{precision}" / str(calibration_set.parent).split('/')[-1]
+    results_dir = Path(results_base_dir) / model_stem / f"static_{precision}" / str(calibration_set.parent).split('/')[-1]
 
     # --- Create Directories ---
     os.makedirs(pt_model_dir, exist_ok=True)
@@ -308,10 +320,19 @@ def benchmark_yolo_static_quant_tensorrt(
     # --- Export the Copied PT model to TensorRT ---
     print(f"Exporting PyTorch model to TensorRT Engine...")
     exported_engine_path = export_to_tensorrt(
-        model_path=organized_pt_path,
-        export_kwargs=tensorrt_export_kwargs,
+        model=model,
+        kwargs=tensorrt_export_kwargs,
     )
     print(f"Exported TensorRT model to {exported_engine_path}")
+    
+    # Delete the ONNX file
+    try:
+        print("Attempting to delete the ONNX file...")    
+        os.remove(f'{original_pt_path.stem}.onnx')
+        print("Deleted ONNX file successfully.")
+    except Exception as e:
+        print(f"Error deleting ONNX file: {e}")
+        return None
     
     # Move the exported TensorRT model to the TensorRT directory
     try:
@@ -324,10 +345,12 @@ def benchmark_yolo_static_quant_tensorrt(
     # --- Perform Benchmark on the TensorRT model ---
     dataset_yaml_path_str = benchmark_kwargs.get("data", "coco.yaml")
     dataset_stem = Path(dataset_yaml_path_str).stem # e.g., "coco" or "coco_noisy_low"
+    
+    exported_engine_abs_path = engine_model_dir / str(exported_engine_path).split("/")[-1]
 
     try:
         # Load the processed ONNX model for benchmarking
-        model_engine = YOLO(str(exported_engine_path)) # Must use string path for YOLO constructor
+        model_engine = YOLO(str(exported_engine_abs_path), task="detect") # Must use string path for YOLO constructor
         benchmark_results_obj = benchmark( # Assuming benchmark returns the results object
             model=model_engine,
             kwargs=benchmark_kwargs, # Pass all benchmark args (includes data)
@@ -335,13 +358,13 @@ def benchmark_yolo_static_quant_tensorrt(
         if benchmark_results_obj is None:
             raise RuntimeError("Benchmark function returned None or failed internally.")
     except Exception as e:
-        print(f"Error benchmarking model {exported_engine_path}: {e}")
+        print(f"Error benchmarking model {exported_engine_abs_path}: {e}")
         return None
 
     # --- Extract and Save Results ---
     results_data = {
         "model_name": original_pt_path.stem,
-        "model_type": f"INT8_TENSORRT",
+        "model_type": f"{precision.upper()}_TENSORRT",
         "calibration_set": calibration_set.stem,
         "val_dataset": dataset_yaml_path_str,
         "hardware": get_gpu_name() if benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
