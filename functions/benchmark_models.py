@@ -78,8 +78,8 @@ def benchmark_yolo_fp(
         return None
 
     # --- Perform Benchmark on the TensorRT model ---
-    dataset_yaml_path_str = benchmark_kwargs.get("data", "coco.yaml")
-    dataset_stem = Path(dataset_yaml_path_str).stem # e.g., "coco" or "coco_noisy_low"
+    dataset_yaml_path_str = Path(benchmark_kwargs.get("data", "coco.yaml"))
+    dataset_stem = dataset_yaml_path_str.stem # e.g., "coco" or "coco_noisy_low"
 
     exported_engine_abs_path = engine_model_dir / str(exported_engine_path).split("/")[-1]
     
@@ -100,7 +100,8 @@ def benchmark_yolo_fp(
     results_data = {
         "model_name": original_pt_path.stem,
         "model_type": f"{precision.upper()}_TENSORRT",
-        "val_dataset": dataset_yaml_path_str,
+        "val_dataset": str(dataset_yaml_path_str.parent).split('/')[-1],
+        "val_dataset_path": str(dataset_yaml_path_str),
         "hardware": get_gpu_name() if benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
         "mAP50-95": benchmark_results_obj.results_dict.get('metrics/mAP50-95(B)', None),
         "mAP50": benchmark_results_obj.results_dict.get('metrics/mAP50(B)', None),
@@ -226,8 +227,8 @@ def benchmark_yolo_dynamic_quant(
     )
 
     # --- Perform Benchmark on the Preprocessed ONNX model ---
-    dataset_yaml_path_str = benchmark_kwargs.get("data", "coco.yaml")
-    dataset_stem = Path(dataset_yaml_path_str).stem # e.g., "coco" or "coco_noisy_low"
+    dataset_yaml_path_str = Path(benchmark_kwargs.get("data", "coco.yaml"))
+    dataset_stem = dataset_yaml_path_str.stem # e.g., "coco" or "coco_noisy_low"
 
     try:
         # Load the processed ONNX model for benchmarking
@@ -246,7 +247,8 @@ def benchmark_yolo_dynamic_quant(
     results_data = {
         "model_name": original_pt_path.stem,
         "model_type": f"{precision.upper()}_ONNX_Processed",
-        "val_dataset": dataset_yaml_path_str,
+        "val_dataset": str(dataset_yaml_path_str.parent).split('/')[-1],
+        "val_dataset_path": str(dataset_yaml_path_str),
         "hardware": get_gpu_name() if benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
         "mAP50-95": benchmark_results_obj.results_dict.get('metrics/mAP50-95(B)', None),
         "mAP50": benchmark_results_obj.results_dict.get('metrics/mAP50(B)', None),
@@ -343,8 +345,8 @@ def benchmark_yolo_static_quant_tensorrt(
         return None
 
     # --- Perform Benchmark on the TensorRT model ---
-    dataset_yaml_path_str = benchmark_kwargs.get("data", "coco.yaml")
-    dataset_stem = Path(dataset_yaml_path_str).stem # e.g., "coco" or "coco_noisy_low"
+    dataset_yaml_path_str = Path(benchmark_kwargs.get("data", "coco.yaml"))
+    dataset_stem = dataset_yaml_path_str.stem # e.g., "coco" or "coco_noisy_low"
     
     exported_engine_abs_path = engine_model_dir / str(exported_engine_path).split("/")[-1]
 
@@ -365,8 +367,10 @@ def benchmark_yolo_static_quant_tensorrt(
     results_data = {
         "model_name": original_pt_path.stem,
         "model_type": f"{precision.upper()}_TENSORRT",
-        "calibration_set": calibration_set.stem,
-        "val_dataset": dataset_yaml_path_str,
+        "calibration_set": str(calibration_set.parent).split('/')[-1],
+        "calibration_set_path": str(calibration_set),
+        "val_dataset": str(dataset_yaml_path_str.parent).split('/')[-1],
+        "val_dataset_path": str(dataset_yaml_path_str),
         "hardware": get_gpu_name() if benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
         "mAP50-95": benchmark_results_obj.results_dict.get('metrics/mAP50-95(B)', None),
         "mAP50": benchmark_results_obj.results_dict.get('metrics/mAP50(B)', None),

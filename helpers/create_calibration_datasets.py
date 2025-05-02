@@ -229,6 +229,6 @@ if __name__ == "__main__":
 
     # --- Step 5: Optional Cleanup ---
     print(f"\nOptionally removing temporary mixed images directory: {TEMP_MIXED_IMAGES_DIR}")
-    # shutil.rmtree(TEMP_MIXED_IMAGES_DIR, ignore_errors=True) # Uncomment to enable cleanup
+    shutil.rmtree(TEMP_MIXED_IMAGES_DIR, ignore_errors=True) # Uncomment to enable cleanup
 
     print("\n--- Calibration Dataset Creation Complete ---")

@@ -9,15 +9,15 @@ from pathlib import Path
 from tqdm.auto import tqdm
 
 # --- Augmentation Definitions (Use the same pool as for mixed calibration) ---
-noise_var_low = (10.0, 50.0)
-noise_var_med = (50.0, 150.0)
+noise_var_low = (10/255, 30/255)
+noise_var_med = (35/255, 55/255)
 blur_kernel_low = (3, 5)
 blur_kernel_med = (7, 11)
 contrast_limit_low = (-0.6, -0.3) # Reduce contrast
 jpeg_quality_mod = (50, 75)
 jpeg_quality_heavy = (20, 45)
-transform_noise_low = A.GaussNoise(var_limit=noise_var_low, p=1.0)
-transform_noise_med = A.GaussNoise(var_limit=noise_var_med, p=1.0)
+transform_noise_low = A.GaussNoise(std_range=noise_var_low, p=1.0, per_channel=False)
+transform_noise_med = A.GaussNoise(std_range=noise_var_med, p=1.0, per_channel=False)
 transform_blur_low = A.GaussianBlur(blur_limit=blur_kernel_low, p=1.0)
 transform_blur_med = A.GaussianBlur(blur_limit=blur_kernel_med, p=1.0)
 transform_contrast_low = A.RandomBrightnessContrast(brightness_limit=0, contrast_limit=contrast_limit_low, p=1.0)
@@ -222,45 +222,3 @@ def create_mixed_degradation_val_set(
     except Exception as e:
         print(f"Error creating mixed degraded dataset structure for '{dataset_name}': {e}")
         return None
-
-
-# --- Example Usage ---
-if __name__ == "__main__":
-    # --- Configuration ---
-    ORIGINAL_COCO_DIR = Path("/home/omni/Programming/QRID/datasets/coco")
-    ORIGINAL_VAL_IMAGES = ORIGINAL_COCO_DIR / "images" / "val2017"
-    ORIGINAL_COCO_LABELS = ORIGINAL_COCO_DIR / "labels"
-
-    OUTPUT_VAL_BASE_DIR = Path("./validation_datasets") # Where to create the dataset
-
-    # Load or define your COCO class names
-    coco_class_names = [ # Example COCO names - replace if needed
-        'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
-        'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-        'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
-        'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
-        'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
-        'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
-        'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
-        'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
-        'scissors', 'teddy bear', 'hair drier', 'toothbrush'
-    ]
-
-    # --- Create a mixed validation set with 50% degraded images ---
-    mix_ratio = 0.50
-    output_dir_mixed = OUTPUT_VAL_BASE_DIR / f"coco_val_mixed_degrad_{int(mix_ratio*100)}pct"
-
-    mixed_yaml_path = create_mixed_degradation_val_set(
-        original_val_images_dir=str(ORIGINAL_VAL_IMAGES),
-        original_coco_labels_dir=str(ORIGINAL_COCO_LABELS),
-        output_dataset_root=str(output_dir_mixed),
-        degradation_ratio=mix_ratio,
-        coco_class_names=coco_class_names,
-        seed=42
-    )
-
-    if mixed_yaml_path:
-        print(f"\nSuccessfully created mixed validation dataset.")
-        print(f"YAML file: {mixed_yaml_path}")
-    else:
-        print("\nFailed to create mixed validation dataset.")

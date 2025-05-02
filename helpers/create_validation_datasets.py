@@ -5,14 +5,12 @@ from functions.augmentation.augmentations import create_single_degraded_val_set
 if __name__ == "__main__":
     # --- Define the specific transforms you want to test ---
 
-    # Example: Low Noise
     transform_val_noisy_low = A.Compose([
-        A.GaussNoise(var_limit=(10.0, 50.0), p=1.0) # Always apply
+        A.GaussNoise(std_range=(10/255, 30/255), p=1.0, per_channel=False)
     ])
-
-    # Example: Medium Noise
+    
     transform_val_noisy_med = A.Compose([
-        A.GaussNoise(var_limit=(50.0, 150.0), p=1.0)
+        A.GaussNoise(std_range=(35/255, 55/255), per_channel=False, p=1.0),
     ])
 
     # Example: Low Blur
@@ -64,7 +62,6 @@ if __name__ == "__main__":
         "blurry_low": transform_val_blurry_low,
         "blurry_medium": transform_val_blurry_med, # Add transform if defined
         "jpeg_heavy": transform_val_jpeg_heavy,
-        # "jpeg_medium": transform_val_jpeg_mod, # Add transform if defined
         "contrast_low": transform_val_contrast_low,
         # Add more entries here for each degradation type/level
     }

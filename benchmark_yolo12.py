@@ -14,6 +14,7 @@ calibration_sets = [
 ]
 
 validation_sets = [
+    "coco.yaml",
     '/home/omni/Programming/QRID/QRID/validation_datasets/coco_val_blurry_low/data_blurry_low.yaml',
     "/home/omni/Programming/QRID/QRID/validation_datasets/coco_val_blurry_medium/data_blurry_medium.yaml",
     "/home/omni/Programming/QRID/QRID/validation_datasets/coco_val_contrast_low/data_contrast_low.yaml",
@@ -42,6 +43,7 @@ def main():
                 half=False,
                 benchmark_kwargs={
                     "data": validation_set,
+                    "device": "cuda",
                 }
             )
             print("Benchmarking FP32 finished successfully.")
@@ -53,6 +55,7 @@ def main():
                 half=True,
                 benchmark_kwargs={
                     "data": validation_set,
+                    "device": "cuda",
                 }
             )
             print("Benchmarking FP16 finished successfully.")
@@ -66,6 +69,7 @@ def main():
                 },
                 benchmark_kwargs={
                     "data": validation_set,
+                    "device": "cuda"
                 }
             )
             print("Benchmarking dynamic quantization finished successfully.")
@@ -92,6 +96,7 @@ def main():
                     },
                     benchmark_kwargs={
                         "data": validation_set,
+                        "device": "cuda",
                     }
                 )
                 print(f"Benchmarking {model} on {validation_set} finished successfully.")
@@ -106,45 +111,45 @@ def test_benchmark_functions():
     model = "yolo12n"
     validation_set = validation_sets[0]
     calibration_set = calibration_sets[0]
-    # print(f"Benchmarking model: {model} on validation set: {validation_set}")
-    # print("Benchmarking FP32...")
-    # benchmark_yolo_fp(
-    #     model_pt_path_str=model,
-    #     models_base_dir=models_base_dir,
-    #     results_base_dir=results_base_dir,
-    #     half=False,
-    #     benchmark_kwargs={
-    #         "data": validation_set,
-    #         "device": "cuda",
-    #     }
-    # )
-    # print("Benchmarking FP32 finished successfully.")
-    # print("Benchmarking FP16...")
-    # benchmark_yolo_fp(
-    #     model_pt_path_str=model,
-    #     models_base_dir=models_base_dir,
-    #     results_base_dir=results_base_dir,
-    #     half=True,
-    #     benchmark_kwargs={
-    #         "data": validation_set,
-    #         "device": "cuda",
-    #     }
-    # )
-    # print("Benchmarking FP16 finished successfully.")
-    # print("Benchmarking dynamic quantization...")
-    # benchmark_yolo_dynamic_quant(
-    #     model_pt_path_str=model,
-    #     models_base_dir=models_base_dir,
-    #     results_base_dir=results_base_dir,
-    #     onnx_export_kwargs={
-    #         "device": "cuda",
-    #     },
-    #     benchmark_kwargs={
-    #         "data": validation_set,
-    #         "device": "cuda"
-    #     }
-    # )
-    # print("Benchmarking dynamic quantization finished successfully.")
+    print(f"Benchmarking model: {model} on validation set: {validation_set}")
+    print("Benchmarking FP32...")
+    benchmark_yolo_fp(
+        model_pt_path_str=model,
+        models_base_dir=models_base_dir,
+        results_base_dir=results_base_dir,
+        half=False,
+        benchmark_kwargs={
+            "data": validation_set,
+            "device": "cuda",
+        }
+    )
+    print("Benchmarking FP32 finished successfully.")
+    print("Benchmarking FP16...")
+    benchmark_yolo_fp(
+        model_pt_path_str=model,
+        models_base_dir=models_base_dir,
+        results_base_dir=results_base_dir,
+        half=True,
+        benchmark_kwargs={
+            "data": validation_set,
+            "device": "cuda",
+        }
+    )
+    print("Benchmarking FP16 finished successfully.")
+    print("Benchmarking dynamic quantization...")
+    benchmark_yolo_dynamic_quant(
+        model_pt_path_str=model,
+        models_base_dir=models_base_dir,
+        results_base_dir=results_base_dir,
+        onnx_export_kwargs={
+            "device": "cuda",
+        },
+        benchmark_kwargs={
+            "data": validation_set,
+            "device": "cuda"
+        }
+    )
+    print("Benchmarking dynamic quantization finished successfully.")
     
     print(f"Starting static quantization with TensorRT...")
     print(f"Benchmarking on validation set: {validation_set}")
@@ -163,5 +168,4 @@ def test_benchmark_functions():
     print(f"Finished static quantization with TensorRT on {model} on {validation_set} successfully with calibration set {calibration_set}.")
     
 if __name__ == "__main__":
-    # main()
-    test_benchmark_functions()
+    main()

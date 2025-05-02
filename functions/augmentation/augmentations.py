@@ -10,15 +10,15 @@ from tqdm.auto import tqdm # For progress bars: pip install tqdm
 import shutil # Import for file copying
 
 # --- Augmentation Definitions (Same as before) ---
-noise_var_low = (10.0, 50.0)
-noise_var_med = (50.0, 150.0)
+noise_var_low=(10/255, 30/255)
+noise_var_med=(35/255, 55/255)
 blur_kernel_low = (3, 5)
 blur_kernel_med = (7, 11)
 contrast_limit_low = (-0.6, -0.3) # Reduce contrast
 jpeg_quality_mod = (50, 75)
 jpeg_quality_heavy = (20, 45)
-transform_noise_low = A.GaussNoise(var_limit=noise_var_low, p=1.0)
-transform_noise_med = A.GaussNoise(var_limit=noise_var_med, p=1.0)
+transform_noise_low = A.GaussNoise(std_range=noise_var_low, p=1.0, per_channel=False)
+transform_noise_med = A.GaussNoise(std_range=noise_var_med, p=1.0, per_channel=False)
 transform_blur_low = A.GaussianBlur(blur_limit=blur_kernel_low, p=1.0)
 transform_blur_med = A.GaussianBlur(blur_limit=blur_kernel_med, p=1.0)
 transform_contrast_low = A.RandomBrightnessContrast(brightness_limit=0, contrast_limit=contrast_limit_low, p=1.0)
