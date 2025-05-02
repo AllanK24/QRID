@@ -100,7 +100,7 @@ def benchmark_yolo_fp(
     results_data = {
         "model_name": original_pt_path.stem,
         "model_type": f"{precision.upper()}_TENSORRT",
-        "val_dataset": "coco.yaml" if str(dataset_yaml_path_str.parent).split('/')[-1] == '.' else str(dataset_yaml_path_str.parent).split('/')[-1],
+        "val_dataset": "coco" if str(dataset_yaml_path_str.parent).split('/')[-1] == '.' else str(dataset_yaml_path_str.parent).split('/')[-1],
         "val_dataset_path": str(dataset_yaml_path_str),
         "hardware": get_gpu_name() if benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
         "mAP50-95": benchmark_results_obj.results_dict.get('metrics/mAP50-95(B)', None),
@@ -247,7 +247,7 @@ def benchmark_yolo_dynamic_quant(
     results_data = {
         "model_name": original_pt_path.stem,
         "model_type": f"{precision.upper()}_ONNX_Processed",
-        "val_dataset": "coco.yaml" if str(dataset_yaml_path_str.parent).split('/')[-1] == '.' else str(dataset_yaml_path_str.parent).split('/')[-1],
+        "val_dataset": "coco" if str(dataset_yaml_path_str.parent).split('/')[-1] == '.' else str(dataset_yaml_path_str.parent).split('/')[-1],
         "val_dataset_path": str(dataset_yaml_path_str),
         "hardware": get_gpu_name() if benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
         "mAP50-95": benchmark_results_obj.results_dict.get('metrics/mAP50-95(B)', None),
@@ -369,7 +369,7 @@ def benchmark_yolo_static_quant_tensorrt(
         "model_type": f"{precision.upper()}_TENSORRT",
         "calibration_set": str(calibration_set.parent).split('/')[-1],
         "calibration_set_path": str(calibration_set),
-        "val_dataset": "coco.yaml" if str(dataset_yaml_path_str.parent).split('/')[-1] == '.' else str(dataset_yaml_path_str.parent).split('/')[-1],
+        "val_dataset": "coco" if str(dataset_yaml_path_str.parent).split('/')[-1] == '.' else str(dataset_yaml_path_str.parent).split('/')[-1],
         "val_dataset_path": str(dataset_yaml_path_str),
         "hardware": get_gpu_name() if benchmark_kwargs.get("device", "cpu") == "cuda" else get_cpu_name(),
         "mAP50-95": benchmark_results_obj.results_dict.get('metrics/mAP50-95(B)', None),
