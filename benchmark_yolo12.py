@@ -92,6 +92,7 @@ def main():
                     models_base_dir=models_base_dir,
                     results_base_dir=results_base_dir,
                     tensorrt_export_kwargs={
+                        "int8": True,
                         "data": calibration_set,
                     },
                     benchmark_kwargs={
