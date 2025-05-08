@@ -1,5 +1,13 @@
 # Analyzing Quantization Robustness to Input Degradations
 
+## 🔧 Installation
+
+Install the project and its core dependencies with:
+
+```bash
+pip install .
+```
+
 ## Abstract
 
 Post-Training Quantization (PTQ) is crucial for deploying deep learning models like object detectors (e.g., YOLO) on resource-constrained edge devices. It significantly reduces model size and improves inference speed by converting model weights and activations from floating-point (FP32) to lower-precision integers (typically INT8). However, this conversion can introduce approximation errors, potentially making quantized models more sensitive or "brittle" to real-world input variations and degradations (e.g., noise, blur, low contrast, compression artifacts) compared to their FP32 counterparts. This project investigates this robustness gap. We compare the performance of a pre-trained YOLO object detector in FP32 against its quantized versions (FP16, dynamic QUInt8 ONNX, static INT8 TensorRT) when evaluated on clean data versus data subjected to common input degradations. Furthermore, we propose and evaluate a novel **Degradation-Aware Calibration** strategy for static INT8 PTQ, aiming to improve the robustness of the quantized model.
@@ -89,3 +97,4 @@ BibTeX:
   school={Bahcesehir University},
   year={2025}
 }
+```
