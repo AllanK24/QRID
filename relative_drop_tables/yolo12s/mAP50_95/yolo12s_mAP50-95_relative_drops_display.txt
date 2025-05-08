@@ -1,0 +1,11 @@
+Relative mAP50-95 Drop (%) vs Clean Baseline for yolo12s:
+
+                       FP32    FP16 Dynamic INT8 Static INT8 (Clean Calib) Static INT8 (Mixed Calib)
+Degradation                                                                                         
+Blurry Low            5.59%   5.62%        5.59%                     4.60%                     4.60%
+Blurry Medium        12.42%  12.48%       12.42%                    11.48%                    11.48%
+Contrast Low          1.19%   1.25%        1.19%                    -0.70%                    -0.70%
+JPEG Heavy            0.68%   0.72%        0.68%                     0.85%                     0.85%
+Noisy Low            18.51%  18.58%       18.51%                    23.63%                    23.63%
+Noisy Medium         47.08%  47.09%       47.08%                    47.69%                    47.58%
+Mixed Degrad. (50%)   6.24%   6.32%        6.24%                     6.52%                     6.54%

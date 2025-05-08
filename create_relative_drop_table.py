@@ -2,7 +2,29 @@ import json
 import pandas as pd
 from pathlib import Path
 import numpy as np # For handling potential NaN/Inf
-from collections import defaultdict
+
+def get_metrics_from_result(result_data):
+    """
+    Safely extracts mAP50-95 and mAP50,
+    handling both nested and flat JSON structures.
+    """
+    metrics = {'mAP50-95': np.nan, 'mAP50': np.nan} # Default to NaN
+    if not result_data:
+        return metrics
+
+    data_source = None
+    # 1. Check for NESTED structure
+    if 'benchmark_result' in result_data and isinstance(result_data['benchmark_result'], dict):
+        data_source = result_data['benchmark_result']
+    # 2. Fallback to check for FLAT structure
+    elif 'mAP50-95' in result_data or 'mAP50' in result_data: # Check if either key exists
+        data_source = result_data
+
+    if data_source:
+        metrics['mAP50-95'] = data_source.get('mAP50-95', np.nan)
+        metrics['mAP50'] = data_source.get('mAP50', np.nan)
+
+    return metrics
 
 # --- Configuration ---
 BASE_RESULTS_DIR = Path("/home/omni/Programming/QRID/QRID/results") # Adjust if needed
@@ -77,7 +99,8 @@ def get_map_from_result(result_data):
     return mAP
 
 # --- Main Data Processing ---
-all_model_results = {} # Store raw mAP results: {model: {config: {degradation_folder: mAP}}}
+# --- Main Data Processing ---
+all_model_results = {} # Store raw metrics: {model: {config: {degradation_folder: {'mAP50-95': val, 'mAP50': val}}}}
 
 print("Starting data parsing...")
 for model_stem in MODEL_STEMS:
@@ -85,61 +108,51 @@ for model_stem in MODEL_STEMS:
     model_results = {} # Results for this specific model
 
     # --- Process FP32, FP16, Dynamic INT8 ---
-    # Map Display Name to Directory Name for these simpler cases
     SIMPLE_CONFIGS = {
         "FP32": "fp32",
         "FP16": "fp16",
-        "Dynamic INT8": "dynamic_QUInt8", # Using QUINT8 based on your JSON example
+        "Dynamic INT8": "dynamic_QUInt8",
         }
 
     for config_name, dir_name in SIMPLE_CONFIGS.items():
         config_path = BASE_RESULTS_DIR / model_stem / dir_name
         if config_path.is_dir():
-            config_data = {}
+            config_data = {} # {degradation_folder: {'mAP50-95': val, 'mAP50': val}}
             for folder_name, display_name in DEGRADATION_MAP.items():
-                # Assume one json file inside the degradation folder
                 json_files = list(config_path.glob(f"{folder_name}/*.json"))
                 if json_files:
                     if len(json_files) > 1:
                          print(f"Warning: Found {len(json_files)} JSONs for {config_path}/{folder_name}. Using first: {json_files[0]}")
                     result_data = load_json_result(json_files[0])
-                    config_data[folder_name] = get_map_from_result(result_data)
+                    # Store the dictionary of metrics
+                    config_data[folder_name] = get_metrics_from_result(result_data)
                 else:
-                    # config_data[folder_name] = np.nan # Mark missing data
-                    pass # Only add key if data found, or default to NaN later
+                    # Store default NaN dict if file not found
+                    config_data[folder_name] = {'mAP50-95': np.nan, 'mAP50': np.nan}
             model_results[config_name] = config_data
         else:
              print(f"Warning: {config_name} results directory not found for {model_stem} at {config_path}")
 
-
-    # --- Process Static INT8 (Has extra calibration folder layer) ---
-    static_base_path = BASE_RESULTS_DIR / model_stem # Base path for this model
-    # Assuming the static results live under a subfolder reflecting the type, e.g. static_QInt8_QInt8
-    # If they are directly under /static_int8/, adjust the path structure here.
-    # We will glob to find directories starting with "static_" to be more robust
+    # --- Process Static INT8 ---
+    static_base_path = BASE_RESULTS_DIR / model_stem
     static_dirs = list(static_base_path.glob("static_*"))
 
     if static_dirs:
-      # If you only have one static dir, e.g. "static_QInt8_QInt8" use static_dirs[0]
-      # If you might have others, you may need to loop or be more specific
-       for static_dir_path in static_dirs: # Handle potentially multiple static_TYPE_TYPE dirs
+       for static_dir_path in static_dirs:
           for calib_folder in ["coco_calib_clean", "coco_calib_mixed"]:
               calib_path = static_dir_path / calib_folder
               if not calib_path.is_dir():
-                  # print(f"Debug: Calibration path '{calib_path}' not found.")
-                  continue # Silently skip if this specific calibration wasn't run
+                  continue
 
               config_name = f"Static INT8 ({'Clean' if 'clean' in calib_folder else 'Mixed'} Calib)"
-              int8_data = {}
+              int8_data = {} # {degradation_folder: {'mAP50-95': val, 'mAP50': val}}
               for folder_name, display_name in DEGRADATION_MAP.items():
                   json_files = list(calib_path.glob(f"{folder_name}/*.json"))
                   if json_files:
                       result_data = load_json_result(json_files[0])
-                      int8_data[folder_name] = get_map_from_result(result_data)
+                      int8_data[folder_name] = get_metrics_from_result(result_data)
                   else:
-                       # int8_data[folder_name] = np.nan # Mark missing
-                       pass # Only add key if data found
-
+                       int8_data[folder_name] = {'mAP50-95': np.nan, 'mAP50': np.nan}
               model_results[config_name] = int8_data
     else:
         print(f"Warning: No 'static_*' results directory found for {model_stem}")
@@ -150,75 +163,115 @@ for model_stem in MODEL_STEMS:
 print("\nData parsing complete.")
 
 # --- Calculate Relative Drops and Create Tables ---
-print("\nGenerating Relative Drop Tables...")
-
-pd.set_option('display.precision', 2) # Set display precision for percentages
-
-for model_stem, configs_data in all_model_results.items():
-    print(f"\n--- Results for Model: {model_stem} ---")
+def generate_relative_drop_table(
+    model_stem: str,
+    configs_data: dict,
+    metric_key: str, # 'mAP50-95' or 'mAP50'
+    output_base_dir: Path
+):
+    """
+    Generates and saves a relative drop table for a specific metric.
+    """
+    print(f"\n--- Generating Table for Metric: {metric_key} (Model: {model_stem}) ---")
 
     relative_drops = []
-
-    # Get baselines (Clean mAP)
     baselines = {}
+
+    # Get baselines for the specific metric
     for config_name, data in configs_data.items():
-        baselines[config_name] = data.get("coco", np.nan)
+        # data structure: {degradation_folder: {'mAP50-95': val, 'mAP50': val}}
+        clean_metrics = data.get("coco", {}) # Get metrics dict for 'coco'
+        baselines[config_name] = clean_metrics.get(metric_key, np.nan) # Get specific metric
         if np.isnan(baselines[config_name]):
-             print(f"Warning: Clean baseline mAP missing for {config_name}. Cannot calculate relative drops.")
+             print(f"Warning: Clean baseline {metric_key} missing for {config_name}.")
 
     # Calculate drops for each degradation
     for folder_name in DEGRADATION_FOLDERS_ORDERED:
-       # if folder_name == "coco": continue # Skip clean baseline row for drops table
-
-        degradation_name = DEGRADATION_MAP.get(folder_name, folder_name) # Get display name
+        degradation_name = DEGRADATION_MAP.get(folder_name, folder_name)
         row = {"Degradation": degradation_name}
 
         for config_name in COLUMN_ORDER: # Use defined column order
              if config_name not in configs_data:
-                 row[config_name] = np.nan # Add NaN if this config doesn't exist for this model
+                 row[config_name] = np.nan
                  continue
 
-             data = configs_data[config_name]
+             data = configs_data[config_name] # {degradation_folder: {metric_dict}}
              baseline_map = baselines.get(config_name, np.nan)
-             degraded_map = data.get(folder_name, np.nan)
-             rel_drop = np.nan # Default to NaN
+             degraded_metrics = data.get(folder_name, {}) # Get metric dict for this folder
+             degraded_map = degraded_metrics.get(metric_key, np.nan) # Get specific metric
+             rel_drop = np.nan
 
              if not np.isnan(baseline_map) and not np.isnan(degraded_map):
-                if abs(baseline_map) > 1e-7: # Avoid division by zero or near-zero
+                if abs(baseline_map) > 1e-7:
                     rel_drop = ((baseline_map - degraded_map) / baseline_map) * 100.0
-                elif abs(degraded_map) > 1e-7: # Baseline is zero, degraded is not
-                     rel_drop = -np.inf # Indicate infinite relative increase (or large negative drop)
-                else: # Both baseline and degraded are zero or near-zero
-                      rel_drop = 0.0 # No change from zero
+                elif abs(degraded_map) > 1e-7:
+                     rel_drop = -np.inf
+                else:
+                      rel_drop = 0.0
              row[config_name] = rel_drop
         relative_drops.append(row)
 
-    # Create DataFrame
     if not relative_drops:
-        print("No data to create table.")
-        continue
+        print(f"No data to create {metric_key} table for {model_stem}.")
+        return
 
     df = pd.DataFrame(relative_drops)
     df = df.set_index("Degradation")
 
-    # Reorder columns to desired, standard order, only keeping those that exist
     existing_columns = [col for col in COLUMN_ORDER if col in df.columns]
     df = df[existing_columns]
 
+    # --- Output ---
+    # Create subdirectory for the metric
+    metric_output_dir = output_base_dir / metric_key.replace('-','_') # mAP50_95 or mAP50
+    metric_output_dir.mkdir(parents=True, exist_ok=True)
+
     # Format for display
-    print("Relative mAP50-95 Drop (%) vs Clean Baseline:")
-    # Format as strings with '%' sign, handling NaN and Inf
+    table_title = f"Relative {metric_key} Drop (%) vs Clean Baseline for {model_stem}:"
+    print(table_title)
+
     def format_value(x):
-        if pd.isna(x):
-            return "N/A"
-        if np.isinf(x):
-             return "Inf"
+        if pd.isna(x): return "N/A"
+        if np.isinf(x): return "Inf"
         return f"{x:.2f}%"
 
-    df_display = df.applymap(format_value)
+    df_display = df.map(format_value) # Use map instead of applymap
 
     print(df_display.to_string())
-    # df.to_csv(f"{model_stem}_relative_drops.csv", index=True) # Save raw numbers to CSV
-    print("-" * 80)
+
+    # Save CSV (raw numbers)
+    csv_filename = metric_output_dir / f"{model_stem}_{metric_key}_relative_drops.csv"
+    try:
+        df.to_csv(csv_filename, index=True, float_format='%.4f') # Save raw floats
+        print(f"Saved raw data to {csv_filename}")
+    except Exception as e:
+        print(f"Error saving CSV {csv_filename}: {e}")
+
+    # Optional: Save formatted display table to txt
+    txt_filename = metric_output_dir / f"{model_stem}_{metric_key}_relative_drops_display.txt"
+    try:
+        with open(txt_filename, 'w') as f:
+            f.write(table_title + "\n\n")
+            f.write(df_display.to_string())
+        print(f"Saved display table to {txt_filename}")
+    except Exception as e:
+        print(f"Error saving display txt {txt_filename}: {e}")
+
+    print("-" * (len(table_title) if len(table_title) > 80 else 80) )
+
+
+# --- Call Table Generation Function ---
+
+print("\nGenerating Relative Drop Tables...")
+pd.set_option('display.precision', 2) # Set display precision for percentages
+
+# Define where to save the tables
+TABLE_OUTPUT_DIR = Path("./relative_drop_tables") # Base directory for tables
+
+for model_stem, configs_data in all_model_results.items():
+    model_table_output_dir = TABLE_OUTPUT_DIR / model_stem
+    generate_relative_drop_table(model_stem, configs_data, 'mAP50-95', model_table_output_dir)
+    generate_relative_drop_table(model_stem, configs_data, 'mAP50', model_table_output_dir)
+
 
 print("\nAnalysis complete.")

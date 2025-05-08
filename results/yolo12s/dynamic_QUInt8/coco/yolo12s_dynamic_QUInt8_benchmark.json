@@ -1,0 +1,11 @@
+{
+    "model_name": "yolo12s",
+    "model_type": "DYNAMIC_QUINT8_ONNX_Processed",
+    "val_dataset": "coco",
+    "val_dataset_path": "coco.yaml",
+    "hardware": "NVIDIA GeForce RTX 2070",
+    "mAP50-95": 0.47625852585514344,
+    "mAP50": 0.646187574586998,
+    "latency_ms": 12.064503438796056,
+    "fps": 82.88778772148059
+}

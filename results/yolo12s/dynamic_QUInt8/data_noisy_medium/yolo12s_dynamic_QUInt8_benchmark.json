@@ -1,0 +1,11 @@
+{
+    "model_name": "yolo12s",
+    "model_type": "DYNAMIC_QUINT8_ONNX_Processed",
+    "val_dataset": "coco_val_noisy_medium",
+    "val_dataset_path": "/home/omni/Programming/QRID/QRID/validation_datasets/coco_val_noisy_medium/data_noisy_medium.yaml",
+    "hardware": "NVIDIA GeForce RTX 2070",
+    "mAP50-95": 0.25204092250602894,
+    "mAP50": 0.37046097663976574,
+    "latency_ms": 12.596708421978837,
+    "fps": 79.38581782644044
+}

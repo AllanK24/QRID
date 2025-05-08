@@ -1,0 +1,13 @@
+{
+    "model_name": "yolo12m",
+    "model_type": "INT8_TENSORRT",
+    "calibration_set": "coco_calib_mixed",
+    "calibration_set_path": "/home/omni/Programming/QRID/QRID/calibration_sets/coco_calib_mixed/data.yaml",
+    "val_dataset": "coco_val_contrast_low",
+    "val_dataset_path": "/home/omni/Programming/QRID/QRID/validation_datasets/coco_val_contrast_low/data_contrast_low.yaml",
+    "hardware": "NVIDIA GeForce RTX 2070",
+    "mAP50-95": 0.48832553689213826,
+    "mAP50": 0.6540650900679752,
+    "latency_ms": 6.801238073980494,
+    "fps": 147.03205344710713
+}

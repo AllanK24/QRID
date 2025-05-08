@@ -1,0 +1,11 @@
+{
+    "model_name": "yolo12s",
+    "model_type": "FP32_TENSORRT",
+    "val_dataset": "coco",
+    "val_dataset_path": "coco.yaml",
+    "hardware": "NVIDIA GeForce RTX 2070",
+    "mAP50-95": 0.4762582289048309,
+    "mAP50": 0.6461873519903547,
+    "latency_ms": 8.604426142402735,
+    "fps": 116.21925546806494
+}

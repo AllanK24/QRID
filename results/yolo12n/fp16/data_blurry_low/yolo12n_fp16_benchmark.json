@@ -1,0 +1,11 @@
+{
+    "model_name": "yolo12n",
+    "model_type": "FP16_TENSORRT",
+    "val_dataset": "coco_val_blurry_low",
+    "val_dataset_path": "/home/omni/Programming/QRID/QRID/validation_datasets/coco_val_blurry_low/data_blurry_low.yaml",
+    "hardware": "NVIDIA GeForce RTX 2070",
+    "mAP50-95": 0.3837716779586964,
+    "mAP50": 0.542810755165932,
+    "latency_ms": 2.281111564203547,
+    "fps": 438.3827672844012
+}

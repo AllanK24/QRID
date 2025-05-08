@@ -1,0 +1,11 @@
+{
+    "model_name": "yolo12l",
+    "model_type": "FP32_TENSORRT",
+    "val_dataset": "coco_val_mixed_degrad_50pct",
+    "val_dataset_path": "/home/omni/Programming/QRID/QRID/validation_datasets/coco_val_mixed_degrad_50pct/data_coco_val_mixed_degrad_50pct.yaml",
+    "hardware": "NVIDIA GeForce RTX 2070",
+    "mAP50-95": 0.5100186390504442,
+    "mAP50": 0.6754458739758802,
+    "latency_ms": 29.70993175258627,
+    "fps": 33.65877809237812
+}

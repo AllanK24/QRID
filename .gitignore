@@ -13,8 +13,3 @@ yolov8n_processed.onnx
 calibration_sets
 functions/augmentation/__pycache__
 validation_datasets
-benchmark_results_fp32.json
-benchmark_results_static.json
-yolo12x_benchmarks
-yolo12n_benchmarks
-results/

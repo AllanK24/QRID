@@ -1,0 +1,11 @@
+{
+    "model_name": "yolo12x",
+    "model_type": "DYNAMIC_QUINT8_ONNX_Processed",
+    "val_dataset": "coco_val_mixed_degrad_50pct",
+    "val_dataset_path": "/home/omni/Programming/QRID/QRID/validation_datasets/coco_val_mixed_degrad_50pct/data_coco_val_mixed_degrad_50pct.yaml",
+    "hardware": "NVIDIA GeForce RTX 2070",
+    "mAP50-95": 0.5279932737628081,
+    "mAP50": 0.6939075435307813,
+    "latency_ms": 70.60490223958696,
+    "fps": 14.163322492914904
+}
