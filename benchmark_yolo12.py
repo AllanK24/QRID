@@ -1,10 +1,10 @@
 from functions.benchmark_models import benchmark_yolo_fp, benchmark_yolo_dynamic_quant, benchmark_yolo_static_quant_tensorrt
 
 model_list = [
-    "yolo12n",
-    "yolo12s",
-    "yolo12m",
-    "yolo12l",
+    # "yolo12n",
+    # "yolo12s",
+    # "yolo12m",
+    # "yolo12l",
     "yolo12x",
 ]
 
@@ -31,54 +31,54 @@ def main():
     
     print("Starting YOLOv12 Benchmarking...")
     
-    for model in model_list:
-        print(f"Benchmarking model: {model}")
-        for validation_set in validation_sets:
-            print(f"Benchmarking model: {model} on validation set: {validation_set}")
-            print("Benchmarking FP32...")
-            benchmark_yolo_fp(
-                model_pt_path_str=model,
-                models_base_dir=models_base_dir,
-                results_base_dir=results_base_dir,
-                half=False,
-                benchmark_kwargs={
-                    "data": validation_set,
-                    "device": "cuda",
-                }
-            )
-            print("Benchmarking FP32 finished successfully.")
-            print("Benchmarking FP16...")
-            benchmark_yolo_fp(
-                model_pt_path_str=model,
-                models_base_dir=models_base_dir,
-                results_base_dir=results_base_dir,
-                half=True,
-                benchmark_kwargs={
-                    "data": validation_set,
-                    "device": "cuda",
-                }
-            )
-            print("Benchmarking FP16 finished successfully.")
-            print("Benchmarking dynamic quantization...")
-            benchmark_yolo_dynamic_quant(
-                model_pt_path_str=model,
-                models_base_dir=models_base_dir,
-                results_base_dir=results_base_dir,
-                onnx_export_kwargs={
-                    "device": "cuda",
-                },
-                benchmark_kwargs={
-                    "data": validation_set,
-                    "device": "cuda"
-                }
-            )
-            print("Benchmarking dynamic quantization finished successfully.")
+    # for model in model_list:
+    #     print(f"Benchmarking model: {model}")
+    #     for validation_set in validation_sets:
+    #         print(f"Benchmarking model: {model} on validation set: {validation_set}")
+    #         print("Benchmarking FP32...")
+    #         benchmark_yolo_fp(
+    #             model_pt_path_str=model,
+    #             models_base_dir=models_base_dir,
+    #             results_base_dir=results_base_dir,
+    #             half=False,
+    #             benchmark_kwargs={
+    #                 "data": validation_set,
+    #                 "device": "cuda",
+    #             }
+    #         )
+    #         print("Benchmarking FP32 finished successfully.")
+    #         print("Benchmarking FP16...")
+    #         benchmark_yolo_fp(
+    #             model_pt_path_str=model,
+    #             models_base_dir=models_base_dir,
+    #             results_base_dir=results_base_dir,
+    #             half=True,
+    #             benchmark_kwargs={
+    #                 "data": validation_set,
+    #                 "device": "cuda",
+    #             }
+    #         )
+    #         print("Benchmarking FP16 finished successfully.")
+    #         print("Benchmarking dynamic quantization...")
+    #         benchmark_yolo_dynamic_quant(
+    #             model_pt_path_str=model,
+    #             models_base_dir=models_base_dir,
+    #             results_base_dir=results_base_dir,
+    #             onnx_export_kwargs={
+    #                 "device": "cuda",
+    #             },
+    #             benchmark_kwargs={
+    #                 "data": validation_set,
+    #                 "device": "cuda"
+    #             }
+    #         )
+    #         print("Benchmarking dynamic quantization finished successfully.")
             
-            print(f"Benchmarked {model} on {validation_set} finished successfully.")
+    #         print(f"Benchmarked {model} on {validation_set} finished successfully.")
         
-        print(f"Finished benchmarking {model} on all validation sets.")
+    #     print(f"Finished benchmarking {model} on all validation sets.")
     
-    print("Finished benchmarking FP32, FP16 and Dynamic Quantization Yolo on all validation sets.")    
+    # print("Finished benchmarking FP32, FP16 and Dynamic Quantization Yolo on all validation sets.")    
         
     print(f"Starting benchmarking for static quantization with TensorRT...")
     for model in model_list:
