@@ -1,17 +1,5 @@
 # Analyzing Quantization Robustness to Input Degradations
 
-**Authors:** 
-Allan Kazakov (<allan.kazakov@bahcesehir.edu.tr>)
-Toghrul Karimov (<toghrul.karimov@bahcesehir.edu.tr>)
-
-**Affiliation:** Bahcesehir University
-
-**Context:** Research and Codebase for Master's Thesis
-
-**Date:** 08.05.2025
-
----
-
 ## Abstract
 
 Post-Training Quantization (PTQ) is crucial for deploying deep learning models like object detectors (e.g., YOLO) on resource-constrained edge devices. It significantly reduces model size and improves inference speed by converting model weights and activations from floating-point (FP32) to lower-precision integers (typically INT8). However, this conversion can introduce approximation errors, potentially making quantized models more sensitive or "brittle" to real-world input variations and degradations (e.g., noise, blur, low contrast, compression artifacts) compared to their FP32 counterparts. This project investigates this robustness gap. We compare the performance of a pre-trained YOLO object detector in FP32 against its quantized versions (FP16, dynamic QUInt8 ONNX, static INT8 TensorRT) when evaluated on clean data versus data subjected to common input degradations. Furthermore, we propose and evaluate a novel **Degradation-Aware Calibration** strategy for static INT8 PTQ, aiming to improve the robustness of the quantized model.
@@ -52,7 +40,7 @@ Standard Static Post-Training Quantization typically relies on a small set of *c
 
 This study evaluated the robustness of different YOLO model sizes (YOLOv12n, s, m, l, x - *[Adjust model name/version if needed]*) in various precisions (FP32, FP16, Dynamic QUInt8 ONNX, Static INT8 TensorRT) against common input image degradations. Static INT8 models were generated using TensorRT's PTQ, calibrated either with clean data (`Static INT8 (Clean Calib)`) or a 50/50 mix of clean and degraded data (`Static INT8 (Mixed Calib)`). Performance was measured by the relative drop in mAP50-95 and mAP50 compared to each model's own performance on the clean COCO validation set.
 
-*(Note: Detailed tables and raw results can be found in the `relative_drop_tables/` directory.)*
+*(Note: Detailed tables and raw results can be found in the `results_tables/` directory.)*
 
 **Key Findings:**
 
@@ -81,3 +69,23 @@ This study evaluated the robustness of different YOLO model sizes (YOLOv12n, s, 
 **Overall:** Static INT8 TensorRT quantization offers significant speed benefits but comes with a baseline accuracy cost and increased sensitivity to noise compared to FP32/FP16/Dynamic INT8. While static INT8 can sometimes be slightly more robust to blur or contrast changes, the effectiveness of using mixed calibration data to further enhance general robustness was inconsistent across model scales in this study, showing notable potential only for the largest (`yolo12x`) model under specific degradations.
 
 <!--## Repository Structure-->
+
+## 📜 License
+
+This project is licensed under the [MIT License](LICENSE).  
+You are free to use, modify, and distribute this code with proper attribution.
+
+## 📖 Citation
+
+If you use this codebase or findings in your own research, please consider citing:
+
+Kazakov, A., & Karimov, T. (2025). *Analyzing Quantization Robustness to Input Degradations*. Master's Thesis, Bahcesehir University.
+
+BibTeX:
+```bibtex
+@mastersthesis{kazakov2025quantization,
+  title={Analyzing Quantization Robustness to Input Degradations},
+  author={Kazakov, Allan and Karimov, Toghrul},
+  school={Bahcesehir University},
+  year={2025}
+}
