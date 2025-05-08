@@ -13,3 +13,5 @@ yolov8n_processed.onnx
 calibration_sets
 functions/augmentation/__pycache__
 validation_datasets
+docs/
+/thesis

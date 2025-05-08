@@ -1,8 +1,13 @@
 # Analyzing Quantization Robustness to Input Degradations
 
-**Authors:** Allan Kazakov, Toghrul Karimov
+**Authors:** 
+Allan Kazakov (<allan.kazakov@bahcesehir.edu.tr>)
+Toghrul Karimov (<toghrul.karimov@bahcesehir.edu.tr>)
+
 **Affiliation:** Bahcesehir University
+
 **Context:** Research and Codebase for Master's Thesis
+
 **Date:** 08.05.2025
 
 ---
@@ -37,7 +42,7 @@ Standard Static Post-Training Quantization typically relies on a small set of *c
         *   **Degradation-Aware Static (Novel):** Calibrated using a dataset a set containing ~1000 images – approximately 50% clean images and 50% images randomly degraded using the augmentations listed in the Core Concept section (noise, blur, contrast, jpeg), sourced from the clean sample pool.
 3.  **Validation Datasets:**
     *   **Clean:** Standard COCO `val2017` split.
-    *   **Degraded:** Separate versions of the *entire* COCO `val2017` split were created, with each version having *one* specific degradation applied uniformly to all images (Low Noise, Medium Noise, Low Blur, Medium Blur, Low Contrast, Heavy JPEG). Corresponding `data_*.yaml` files were generated, using functionality provided in the repository
+    *   **Degraded:** Separate versions of the *entire* COCO `val2017` split were created, with each version having *one* specific degradation applied uniformly to all images (Low Noise, Medium Noise, Low Blur, Medium Blur, Low Contrast, Heavy JPEG), besides that the mixed augmented validation set was created that randomly applied one of augmentations listed to 50% of images while other 50% remained clean. Corresponding `data_*.yaml` files were generated, using functionality provided in the repository.
 4.  **Evaluation:**
     *   All models (FP32 engine, FP16 engine, Dynamic QUInt8 ONNX, Static INT8 Clean Calib engine, Static INT8 Mixed Calib engine) were benchmarked on the clean validation set and all distinct degraded validation sets.
     *   **Metrics:** mAP50-95(B), mAP50(B) for accuracy; Latency (ms/image) and FPS for performance (Batch Size 1).
@@ -75,5 +80,4 @@ This study evaluated the robustness of different YOLO model sizes (YOLOv12n, s, 
 
 **Overall:** Static INT8 TensorRT quantization offers significant speed benefits but comes with a baseline accuracy cost and increased sensitivity to noise compared to FP32/FP16/Dynamic INT8. While static INT8 can sometimes be slightly more robust to blur or contrast changes, the effectiveness of using mixed calibration data to further enhance general robustness was inconsistent across model scales in this study, showing notable potential only for the largest (`yolo12x`) model under specific degradations.
 
-
-## Repository Structure
+<!--## Repository Structure-->
