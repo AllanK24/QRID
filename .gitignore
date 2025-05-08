@@ -14,4 +14,5 @@ calibration_sets
 functions/augmentation/__pycache__
 validation_datasets
 docs/
-/thesis
+thesis/
+notebooks/
