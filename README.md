@@ -1,4 +1,4 @@
-# Analyzing Quantization Robustness to Input Degradations
+# Quantization Robustness to Input Degradations for Object Detection
 
 ## 🔧 Installation
 
@@ -78,23 +78,21 @@ This study evaluated the robustness of different YOLO model sizes (YOLOv12n, s, 
 
 <!--## Repository Structure-->
 
-## 📜 License
-
-This project is licensed under the [MIT License](LICENSE).  
-You are free to use, modify, and distribute this code with proper attribution.
-
 ## 📖 Citation
 
-If you use this codebase or findings in your own research, please consider citing:
+If you use this codebase or findings in your research, please cite our paper:
 
-Kazakov, A., & Karimov, T. (2025). *Analyzing Quantization Robustness to Input Degradations*. Master's Thesis, Bahcesehir University.
+**Quantization Robustness to Input Degradations for Object Detection**  
+T. Karimov, H. Imani, A. Kazakov  
+*arXiv preprint arXiv:2508.XXXXX*, 2025.  
+[https://arxiv.org/abs/2508.XXXXX](https://arxiv.org/abs/2508.XXXXX)
 
 BibTeX:
 ```bibtex
-@mastersthesis{kazakov2025quantization,
-  title={Analyzing Quantization Robustness to Input Degradations},
-  author={Kazakov, Allan and Karimov, Toghrul},
-  school={Bahcesehir University},
+@article{karimov2025qrid,
+  title={Quantization Robustness to Input Degradations for Object Detection},
+  author={Karimov, Toghrul and Imani, Hassan and Kazakov, Allan},
+  journal={arXiv preprint arXiv:2508.XXXXX},
   year={2025}
 }
 ```
