@@ -78,14 +78,37 @@ This study evaluated the robustness of different YOLO model sizes (YOLOv12n, s, 
 
 ## Repository Structure
 
-### Dataset Preparation: The helpers/create_calibration_datasets.py, create_validation_datasets.py and create_mixed_validation_dataset.py scripts call functions from functions/augmentation to generate the calibration and validation datasets used in the experiments. Degradations include Gaussian noise, Gaussian blur, low contrast and JPEG compression.
+### Dataset Preparation
+- **Scripts:**  
+  - `helpers/create_calibration_datasets.py`  
+  - `helpers/create_validation_datasets.py`  
+  - `helpers/create_mixed_validation_dataset.py`  
+- **Description:** Generate calibration and validation datasets using functions from `functions/augmentation`.  
+- **Degradations applied:** Gaussian noise, Gaussian blur, low contrast, JPEG compression.
 
-### Model Export and Quantization: The core functions in functions/export_to_onnx.py and functions/export_to_tensorrt.py export YOLO models to ONNX and TensorRT formats with specified precision settings. Pre processing (functions/preprocess.py) and quantization (functions/dynamic_quant.py and functions/static_quant.py) prepare the exported ONNX models for dynamic or static quantization and call ONNX Runtime quantization APIs.
+### Model Export and Quantization
+- **Core scripts:**  
+  - `functions/export_to_onnx.py` → Export YOLO models to ONNX.  
+  - `functions/export_to_tensorrt.py` → Export YOLO models to TensorRT.  
+- **Supporting modules:**  
+  - `functions/preprocess.py` → Pre-processing before quantization.  
+  - `functions/dynamic_quant.py` → Dynamic quantization (ONNX Runtime).  
+  - `functions/static_quant.py` → Static quantization (TensorRT).  
+- **Purpose:** Prepare and quantize models under FP32, FP16, Dynamic UINT8, and Static INT8 settings.
 
-### Benchmarking: The benchmarking orchestrator modules coordinate exporting, quantizing, and benchmarking across different precisions and datasets. Scripts such as benchmark_yolo12.py automate running these routines for the YOLOv12 model family.
+### Benchmarking
+- **Scripts:**  
+  - `benchmark_yolo12.py` (orchestrator for YOLOv12 benchmarks).  
+  - Modules under `functions/benchmark*.py`.  
+- **Role:** Automate export → quantization → evaluation across precisions and degraded datasets.
 
-### Results Analysis: Raw evaluation metrics (mAP and latency) are stored under results/. The create_relative_drop_table.py script reads these JSON files, extracts mAP metrics, computes the relative drop of each configuration on each degraded dataset relative to the clean baseline, and writes the outputs into human readable tables in results_tables/. These tables inform the conclusions in the paper’s results section and README.
-
+### Results Analysis
+- **Raw results:** Stored in `results/` (JSON files with mAP and latency metrics).  
+- **Analysis script:** `create_relative_drop_table.py`  
+  - Extracts mAP metrics.  
+  - Computes relative drop per degradation vs. clean baseline.  
+  - Outputs human-readable tables.  
+- **Processed results:** Written to `results_tables/` (used for paper results and README).
 
 ## 📖 Citation
 
