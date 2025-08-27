@@ -76,7 +76,16 @@ This study evaluated the robustness of different YOLO model sizes (YOLOv12n, s, 
 
 **Overall:** Static INT8 TensorRT quantization offers significant speed benefits but comes with a baseline accuracy cost and increased sensitivity to noise compared to FP32/FP16/Dynamic INT8. While static INT8 can sometimes be slightly more robust to blur or contrast changes, the effectiveness of using mixed calibration data to further enhance general robustness was inconsistent across model scales in this study, showing notable potential only for the largest (`yolo12x`) model under specific degradations.
 
-<!--## Repository Structure-->
+## Repository Structure
+
+### Dataset Preparation: The helpers/create_calibration_datasets.py, create_validation_datasets.py and create_mixed_validation_dataset.py scripts call functions from functions/augmentation to generate the calibration and validation datasets used in the experiments. Degradations include Gaussian noise, Gaussian blur, low contrast and JPEG compression.
+
+### Model Export and Quantization: The core functions in functions/export_to_onnx.py and functions/export_to_tensorrt.py export YOLO models to ONNX and TensorRT formats with specified precision settings. Pre processing (functions/preprocess.py) and quantization (functions/dynamic_quant.py and functions/static_quant.py) prepare the exported ONNX models for dynamic or static quantization and call ONNX Runtime quantization APIs.
+
+### Benchmarking: The benchmarking orchestrator modules coordinate exporting, quantizing, and benchmarking across different precisions and datasets. Scripts such as benchmark_yolo12.py automate running these routines for the YOLOv12 model family.
+
+### Results Analysis: Raw evaluation metrics (mAP and latency) are stored under results/. The create_relative_drop_table.py script reads these JSON files, extracts mAP metrics, computes the relative drop of each configuration on each degraded dataset relative to the clean baseline, and writes the outputs into human readable tables in results_tables/. These tables inform the conclusions in the paper’s results section and README.
+
 
 ## 📖 Citation
 
