@@ -117,14 +117,14 @@ If you use this codebase or findings in your research, please cite our paper:
 **Quantization Robustness to Input Degradations for Object Detection**  
 T. Karimov, H. Imani, A. Kazakov  
 *arXiv preprint arXiv:2508.XXXXX*, 2025.  
-[https://arxiv.org/abs/2508.XXXXX](https://arxiv.org/abs/2508.XXXXX)
+[https://arxiv.org/abs/2508.19600](https://arxiv.org/abs/2508.19600)
 
 BibTeX:
 ```bibtex
 @article{karimov2025qrid,
   title={Quantization Robustness to Input Degradations for Object Detection},
   author={Karimov, Toghrul and Imani, Hassan and Kazakov, Allan},
-  journal={arXiv preprint arXiv:2508.XXXXX},
+  journal={arXiv preprint arXiv:2508.19600},
   year={2025}
 }
 ```
