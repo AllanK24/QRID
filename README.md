@@ -116,7 +116,7 @@ If you use this codebase or findings in your research, please cite our paper:
 
 **Quantization Robustness to Input Degradations for Object Detection**  
 T. Karimov, H. Imani, A. Kazakov  
-*arXiv preprint arXiv:2508.XXXXX*, 2025.  
+*arXiv preprint arXiv:2508.19600*, 2025.  
 [https://arxiv.org/abs/2508.19600](https://arxiv.org/abs/2508.19600)
 
 BibTeX:
